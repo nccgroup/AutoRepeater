@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:+'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'net.portswigger.burp.extender:burp-extender-api:1.7.13'
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
+    compile 'org.bitbucket.cowwoc.diff-match-patch:diff-match-patch:+'
+    compile 'com.google.guava:guava:23.4-jre'
+}
+
+//noinspection GroovyAssignabilityCheck
+sourceSets {
+    main {
+        java {
+            srcDirs = ["./src"]
+        }
+
+        //resources {
+        //    srcDirs = ['res']
+        //}
+    }
+}
+
+defaultTasks 'shadowJar'
+
+//noinspection GroovyAssignabilityCheck
+jar {
+    manifest {
+        attributes (
+                "Manifest-Version": "1.0",
+        )
+    }
+}
