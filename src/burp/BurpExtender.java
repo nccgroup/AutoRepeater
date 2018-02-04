@@ -145,7 +145,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   public void processHttpMessage(int toolFlag, boolean messageIsRequest,
       IHttpRequestResponse messageInfo) {
     for (AutoRepeater autoRepeater : autoRepeaters) {
-      autoRepeater.modifyAndSendRequestAndLog(toolFlag, messageIsRequest, messageInfo);
+      autoRepeater.modifyAndSendRequestAndLog(toolFlag, messageIsRequest, messageInfo, false);
     }
   }
 
@@ -262,7 +262,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         Utils.highlightParentTab((JTabbedPane) getUiComponent().getParent(), getUiComponent());
         for (AutoRepeater autoRepeater : autoRepeaters) {
           for (IHttpRequestResponse requestResponse : requestResponses) {
-            autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, requestResponse);
+            autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, requestResponse, true);
           }
         }
       }
@@ -273,5 +273,4 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     menu.add(item);
     return menu;
   }
-
 }

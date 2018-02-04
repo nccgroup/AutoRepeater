@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: net.portswigger.burp.extender:burp-extender-api:1.7.13">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.portswigger.burp.extender/burp-extender-api/1.7.13/1bf506f157f4fabec379186963ea2c976acc32c2/burp-extender-api-1.7.13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.portswigger.burp.extender/burp-extender-api/1.7.13/4dca0b553fb857d42427643714ddb3bfddac3334/burp-extender-api-1.7.13-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

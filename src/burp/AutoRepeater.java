@@ -1160,77 +1160,125 @@ public class AutoRepeater implements IMessageEditorController {
   }
 
 
-  public void modifyAndSendRequestAndLog(int toolFlag, boolean messageIsRequest,
-      IHttpRequestResponse messageInfo) {
+  public void modifyAndSendRequestAndLog(
+          int toolFlag,
+          boolean messageIsRequest,
+          IHttpRequestResponse messageInfo,
+          boolean isSentToAutoRepeater) {
     // If the message is a request, check all the conditions, if the conditions end up being trust,
     // perform every replacement and resend the request
     // if the message is a response, search the list of messages that don't have a response and update the log entry
 
+    // At some point i should refactor this whole thing to use a lookup for outgoing requests
+    // and incoming responses but that caused a race condition last time and might be more work
+    // then it's worth
+
     ExecutorService executor = Executors.newSingleThreadExecutor();
     executor.submit(() -> {
-      //Although this isn't optimal, i'm generating the modified requests when a response is received.
-      //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
-      //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
-      if (!messageIsRequest
-          && activatedButton.isSelected()
-          && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
-        boolean meetsConditions = false;
-        if (conditionTableModel.getConditions().size() == 0) {
-          meetsConditions = true;
-        } else {
-          if (conditionTableModel.getConditions()
-              .stream()
-              .filter(Condition::isEnabled)
-              .filter(c -> c.getBooleanOperator().equals("Or"))
-              .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-            meetsConditions = true;
-          }
-          if (conditionTableModel.getConditions()
-              .stream()
-              .filter(Condition::isEnabled)
-              .filter(
-                  c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
-              .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-            meetsConditions = true;
-          }
-        }
-        if (meetsConditions) {
-          // Create a set to store each new unique request in
-          HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
-          IHttpRequestResponse baseReplacedRequestResponse = Utils
-              .cloneIHttpRequestResponse(messageInfo);
-          // Perform all the base replacements on the captured request
-          for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
-            baseReplacedRequestResponse.setRequest(
-                globalReplacement.performReplacement(baseReplacedRequestResponse));
-          }
-          //Add the base replaced request to the request set
-          requestSet.add(baseReplacedRequestResponse);
-
-          // Perform all the seperate replacements on the request+base replacements and add them to the set
-          for (Replacement replacement : replacementTableModel.getReplacements()) {
-            IHttpRequestResponse newHttpRequest = Utils
-                .cloneIHttpRequestResponse(baseReplacedRequestResponse);
-            newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
-            requestSet.add(newHttpRequest);
-          }
-
-          // Perform every unique request and log
-          for (IHttpRequestResponse request : requestSet) {
-            if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
-              IHttpRequestResponse modifiedRequestResponse =
-                  callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
-              int row = logManager.getRowCount();
-              LogEntry newLogEntry = new LogEntry(
-                  row + 1,
-                  callbacks.saveBuffersToTempFiles(messageInfo),
-                  callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-              logManager.addEntry(newLogEntry);
-              logManager.fireTableRowsUpdated(row, row);
-            }
-          }
-        }
-      }
+      // Handle "Send To AutoRepeater"
+     if (isSentToAutoRepeater)  {
+       IHttpRequestResponse newMessageInfo;
+         if (messageIsRequest) {
+           newMessageInfo = BurpExtender.getCallbacks().makeHttpRequest(
+               messageInfo.getHttpService(), messageInfo.getRequest());
+         } else {
+           newMessageInfo = messageInfo;
+         }
+         // This is the same thing as below. If a response is selected we're good
+         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
+         IHttpRequestResponse baseReplacedRequestResponse = Utils
+                 .cloneIHttpRequestResponse(newMessageInfo);
+         // Perform all the base replacements on the captured request
+         for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
+           baseReplacedRequestResponse.setRequest(
+                   globalReplacement.performReplacement(baseReplacedRequestResponse));
+         }
+         //Add the base replaced request to the request set
+         requestSet.add(baseReplacedRequestResponse);
+         // Perform all the seperate replacements on the request+base replacements and add them to the set
+         for (Replacement replacement : replacementTableModel.getReplacements()) {
+           IHttpRequestResponse newHttpRequest = Utils
+                   .cloneIHttpRequestResponse(baseReplacedRequestResponse);
+           newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
+           requestSet.add(newHttpRequest);
+         }
+         // Perform every unique request and log
+         for (IHttpRequestResponse request : requestSet) {
+           if (!Arrays.equals(request.getRequest(), newMessageInfo.getRequest())) {
+             IHttpRequestResponse modifiedRequestResponse =
+                     callbacks.makeHttpRequest(newMessageInfo.getHttpService(), request.getRequest());
+             int row = logManager.getRowCount();
+             LogEntry newLogEntry = new LogEntry(
+                     row + 1,
+                     callbacks.saveBuffersToTempFiles(newMessageInfo),
+                     callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+             logManager.addEntry(newLogEntry);
+             logManager.fireTableRowsUpdated(row, row);
+           }
+         }
+     } else {
+       //Although this isn't optimal, i'm generating the modified requests when a response is received.
+       //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
+       //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
+       if (!messageIsRequest
+           && activatedButton.isSelected()
+           && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
+         boolean meetsConditions = false;
+         if (conditionTableModel.getConditions().size() == 0) {
+           meetsConditions = true;
+         } else {
+           if (conditionTableModel.getConditions()
+               .stream()
+               .filter(Condition::isEnabled)
+               .filter(c -> c.getBooleanOperator().equals("Or"))
+               .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+             meetsConditions = true;
+           }
+           if (conditionTableModel.getConditions()
+               .stream()
+               .filter(Condition::isEnabled)
+               .filter(
+                   c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
+               .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+             meetsConditions = true;
+           }
+         }
+         if (meetsConditions) {
+           // Create a set to store each new unique request in
+           HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
+           IHttpRequestResponse baseReplacedRequestResponse = Utils
+               .cloneIHttpRequestResponse(messageInfo);
+           // Perform all the base replacements on the captured request
+           for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
+             baseReplacedRequestResponse.setRequest(
+                 globalReplacement.performReplacement(baseReplacedRequestResponse));
+           }
+           //Add the base replaced request to the request set
+           requestSet.add(baseReplacedRequestResponse);
+           // Perform all the seperate replacements on the request+base replacements and add them to the set
+           for (Replacement replacement : replacementTableModel.getReplacements()) {
+             IHttpRequestResponse newHttpRequest = Utils
+                 .cloneIHttpRequestResponse(baseReplacedRequestResponse);
+             newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
+             requestSet.add(newHttpRequest);
+           }
+           // Perform every unique request and log
+           for (IHttpRequestResponse request : requestSet) {
+             if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
+               IHttpRequestResponse modifiedRequestResponse =
+                   callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
+               int row = logManager.getRowCount();
+               LogEntry newLogEntry = new LogEntry(
+                   row + 1,
+                   callbacks.saveBuffersToTempFiles(messageInfo),
+                   callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+               logManager.addEntry(newLogEntry);
+               logManager.fireTableRowsUpdated(row, row);
+             }
+           }
+         }
+       }
+     }
     });
   }
 

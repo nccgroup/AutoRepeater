@@ -272,7 +272,8 @@ public class Condition {
       case "Sent From Tool":
         switch (this.matchRelationship) {
           case "Burp":
-            return toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER;
+            return toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER &&
+                    toolFlag != BurpExtender.getCallbacks().TOOL_SCANNER;
           case "Proxy":
             return toolFlag == BurpExtender.getCallbacks().TOOL_PROXY;
           case "Repeater":
