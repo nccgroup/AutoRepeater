@@ -189,7 +189,7 @@ public class Utils {
     if (parentTabbedPane != null) {
       for (int i = 0; i < parentTabbedPane.getTabCount(); i++) {
         if (parentTabbedPane.getComponentAt(i).equals(childComponent)) {
-          parentTabbedPane.setBackgroundAt(i, new Color(0xE58900));
+          parentTabbedPane.setBackgroundAt(i, new Color(0xff6633));
           Timer timer = new Timer(3000, e -> {
             for (int j = 0; j < parentTabbedPane.getTabCount(); j++) {
               if (parentTabbedPane.getComponentAt(j).equals(childComponent)) {
