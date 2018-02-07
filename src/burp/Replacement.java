@@ -64,7 +64,9 @@ class Replacement {
     this.isEnabled = true;
   }
 
-  private byte[] updateBurpParamName(byte[] request, int parameterType,
+  private byte[] updateBurpParamName(
+      byte[] request,
+      int parameterType,
       MatchAndReplaceType matchAndReplaceType) {
     IExtensionHelpers helpers = BurpExtender.getHelpers();
     IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
@@ -77,6 +79,8 @@ class Replacement {
       if (currentParameter.getType() == parameterType) {
         switch (matchAndReplaceType) {
           case MATCH_NAME_REPLACE_NAME:
+            // Each if statement checks if isRegexMatch && check regex
+            // || regular string compare
             if ((this.isRegexMatch && currentParameter.getName().matches(this.match))
                 || currentParameter.getName().equals(this.match)) {
               parameters.set(i, helpers.buildParameter(
