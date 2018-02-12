@@ -76,6 +76,8 @@ class Replacement {
     for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
       int i = iterator.nextIndex();
       IParameter currentParameter = iterator.next();
+      BurpExtender.getCallbacks().printOutput(currentParameter.getName());
+      BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
       if (currentParameter.getType() == parameterType) {
         switch (matchAndReplaceType) {
           case MATCH_NAME_REPLACE_NAME:
@@ -168,26 +170,10 @@ class Replacement {
 
   // This is a hack around binary content causing requests to send
   private byte[] updateContent(byte[] request) {
-    String requestString;
-    String originalRequestString;
-
-    try {
-      requestString = new String(request, "UTF-8");
-      originalRequestString = requestString;
-    } catch (UnsupportedEncodingException e) {
-      return request;
-    }
-
-    if (this.which.equals("Replace First")) {
-      requestString = requestString.replaceFirst(this.match, this.replace);
+    if (replaceFirst()) {
+      return Utils.byteArrayRegexReplaceFirst(request, this.match, this.replace);
     } else {
-      requestString = requestString.replaceAll(this.match, this.replace);
-    }
-
-    if (!requestString.equals(originalRequestString)) {
-      return requestString.getBytes();
-    } else {
-      return request;
+      return Utils.byteArrayRegexReplaceAll(request, this.match, this.replace);
     }
   }
 
@@ -259,10 +245,81 @@ class Replacement {
   }
 
   private byte[] updateRequestParamName(byte[] request) {
-    request = updateBurpParamName(request, IParameter.PARAM_BODY,
-        MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
-    return updateBurpParamName(request, IParameter.PARAM_URL,
-        MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
+    IExtensionHelpers helpers = BurpExtender.getHelpers();
+    IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
+    List<IParameter> parameters = analyzedRequest.getParameters();
+    List<IParameter> originalParameters = analyzedRequest.getParameters();
+    boolean requestIsMultipartForm = Utils.isRequestMultipartForm(request);
+    boolean wasChanged = false;
+
+    BurpExtender.getCallbacks().printOutput("Request is multipart form: ");
+    BurpExtender.getCallbacks().printOutput(Boolean.toString(Utils.isRequestMultipartForm(request)));
+
+    if (requestIsMultipartForm) {
+      BurpExtender.getCallbacks().printOutput("Boundary: ");
+      BurpExtender.getCallbacks().printOutput(Utils.getMultipartBoundary(request));
+      Utils.getMultipartParameters(request);
+    }
+
+    for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
+      int i = iterator.nextIndex();
+      IParameter currentParameter = iterator.next();
+      BurpExtender.getCallbacks().printOutput(currentParameter.getName());
+      BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
+      BurpExtender.getCallbacks().printOutput(Byte.toString(currentParameter.getType()));
+      // Each if statement checks if isRegexMatch && check regex
+      // || regular string compare
+      if (currentParameter.getType() == IParameter.PARAM_URL ||
+          currentParameter.getType() == IParameter.PARAM_BODY) {
+        if ((this.isRegexMatch && currentParameter.getName().matches(this.match))
+            || currentParameter.getName().equals(this.match)) {
+          if (requestIsMultipartForm && currentParameter.getType() == IParameter.PARAM_BODY) {
+            parameters.set(i, helpers.buildParameter(
+                this.replace,
+                currentParameter.getValue(),
+                IParameter.PARAM_MULTIPART_ATTR));
+            BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
+            wasChanged = true;
+          } else {
+            parameters.set(i, helpers.buildParameter(
+                this.replace,
+                currentParameter.getValue(),
+                currentParameter.getType()));
+            BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
+            wasChanged = true;
+          }
+        }
+      }
+      // Bail if anything was changed
+      if (this.which.equals("Replace First")) {
+        if (wasChanged) {
+          break;
+        }
+      }
+    }
+    if (wasChanged) {
+      byte[] tempRequest = Arrays.copyOf(request, request.length);
+      // Remove every parameter
+      for (IParameter param : originalParameters) {
+        tempRequest = helpers.removeParameter(tempRequest, param);
+      }
+      // Add them back
+      for (IParameter param : parameters) {
+        tempRequest = helpers.addParameter(tempRequest, param);
+      }
+      // Update the body and headers
+      IRequestInfo tempAnalyzedRequest = helpers.analyzeRequest(tempRequest);
+      byte[] body = Arrays
+          .copyOfRange(tempRequest, tempAnalyzedRequest.getBodyOffset(), tempRequest.length);
+      List<String> headers = tempAnalyzedRequest.getHeaders();
+      return helpers.buildHttpMessage(headers, body);
+    }
+    // Return the modified request
+    return request;
+    //request = updateBurpParamName(request, IParameter.PARAM_BODY,
+    //    MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
+    //return updateBurpParamName(request, IParameter.PARAM_URL,
+    //    MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
   }
 
   private byte[] updateRequestParamValue(byte[] request) {
