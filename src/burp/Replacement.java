@@ -21,7 +21,10 @@ class Replacement {
       "Remove Parameter By Name",
       "Remove Parameter By Value",
       "Remove Cookie By Name",
-      "Remove Cookie By Value"
+      "Remove Cookie By Value",
+
+      "Match Param Name, Replace Value",
+      "Match Cookie Name, Replace Value"
       //"Remove Header By Name",
       //"Remove Header By Value"
   };
@@ -64,7 +67,7 @@ class Replacement {
     this.isEnabled = true;
   }
 
-  private byte[] updateBurpParamName(
+  private byte[] updateBurpParam(
       byte[] request,
       int parameterType,
       MatchAndReplaceType matchAndReplaceType) {
@@ -244,123 +247,157 @@ class Replacement {
     }
   }
 
+  //private byte[] updateRequestParamName(byte[] request) {
+  //  IExtensionHelpers helpers = BurpExtender.getHelpers();
+  //  IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
+  //  List<IParameter> parameters = analyzedRequest.getParameters();
+  //  List<IParameter> originalParameters = analyzedRequest.getParameters();
+  //  boolean requestIsMultipartForm = Utils.isRequestMultipartForm(request);
+  //  boolean wasChanged = false;
+
+  //  BurpExtender.getCallbacks().printOutput("Request is multipart form: ");
+  //  BurpExtender.getCallbacks().printOutput(Boolean.toString(Utils.isRequestMultipartForm(request)));
+
+  //  if (requestIsMultipartForm) {
+  //    BurpExtender.getCallbacks().printOutput("Boundary: ");
+  //    BurpExtender.getCallbacks().printOutput(Utils.getMultipartBoundary(request));
+  //    Utils.getMultipartParameters(request);
+  //  }
+
+  //  for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
+  //    int i = iterator.nextIndex();
+  //    IParameter currentParameter = iterator.next();
+  //    BurpExtender.getCallbacks().printOutput(currentParameter.getName());
+  //    BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
+  //    BurpExtender.getCallbacks().printOutput(Byte.toString(currentParameter.getType()));
+  //    // Each if statement checks if isRegexMatch && check regex
+  //    // || regular string compare
+  //    if (currentParameter.getType() == IParameter.PARAM_URL ||
+  //        currentParameter.getType() == IParameter.PARAM_BODY) {
+  //      if ((this.isRegexMatch && currentParameter.getName().matches(this.match))
+  //          || currentParameter.getName().equals(this.match)) {
+  //        if (requestIsMultipartForm && currentParameter.getType() == IParameter.PARAM_BODY) {
+  //          parameters.set(i, helpers.buildParameter(
+  //              this.replace,
+  //              currentParameter.getValue(),
+  //              IParameter.PARAM_MULTIPART_ATTR));
+  //          BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
+  //          wasChanged = true;
+  //        } else {
+  //          parameters.set(i, helpers.buildParameter(
+  //              this.replace,
+  //              currentParameter.getValue(),
+  //              currentParameter.getType()));
+  //          BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
+  //          wasChanged = true;
+  //        }
+  //      }
+  //    }
+  //    // Bail if anything was changed
+  //    if (this.which.equals("Replace First")) {
+  //      if (wasChanged) {
+  //        break;
+  //      }
+  //    }
+  //  }
+  //  if (wasChanged) {
+  //    byte[] tempRequest = Arrays.copyOf(request, request.length);
+  //    // Remove every parameter
+  //    for (IParameter param : originalParameters) {
+  //      tempRequest = helpers.removeParameter(tempRequest, param);
+  //    }
+  //    // Add them back
+  //    for (IParameter param : parameters) {
+  //      tempRequest = helpers.addParameter(tempRequest, param);
+  //    }
+  //    // Update the body and headers
+  //    IRequestInfo tempAnalyzedRequest = helpers.analyzeRequest(tempRequest);
+  //    byte[] body = Arrays
+  //        .copyOfRange(tempRequest, tempAnalyzedRequest.getBodyOffset(), tempRequest.length);
+  //    List<String> headers = tempAnalyzedRequest.getHeaders();
+  //    return helpers.buildHttpMessage(headers, body);
+  //  }
+  //  return request;
+  //}
+
   private byte[] updateRequestParamName(byte[] request) {
-    IExtensionHelpers helpers = BurpExtender.getHelpers();
-    IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
-    List<IParameter> parameters = analyzedRequest.getParameters();
-    List<IParameter> originalParameters = analyzedRequest.getParameters();
-    boolean requestIsMultipartForm = Utils.isRequestMultipartForm(request);
-    boolean wasChanged = false;
-
-    BurpExtender.getCallbacks().printOutput("Request is multipart form: ");
-    BurpExtender.getCallbacks().printOutput(Boolean.toString(Utils.isRequestMultipartForm(request)));
-
-    if (requestIsMultipartForm) {
-      BurpExtender.getCallbacks().printOutput("Boundary: ");
-      BurpExtender.getCallbacks().printOutput(Utils.getMultipartBoundary(request));
-      Utils.getMultipartParameters(request);
+    if (!Utils.isRequestMultipartForm(request)) {
+      request = updateBurpParam(request, IParameter.PARAM_BODY,
+          MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
+      return updateBurpParam(request, IParameter.PARAM_URL,
+          MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
+    } else {
+      return request;
     }
-
-    for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
-      int i = iterator.nextIndex();
-      IParameter currentParameter = iterator.next();
-      BurpExtender.getCallbacks().printOutput(currentParameter.getName());
-      BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
-      BurpExtender.getCallbacks().printOutput(Byte.toString(currentParameter.getType()));
-      // Each if statement checks if isRegexMatch && check regex
-      // || regular string compare
-      if (currentParameter.getType() == IParameter.PARAM_URL ||
-          currentParameter.getType() == IParameter.PARAM_BODY) {
-        if ((this.isRegexMatch && currentParameter.getName().matches(this.match))
-            || currentParameter.getName().equals(this.match)) {
-          if (requestIsMultipartForm && currentParameter.getType() == IParameter.PARAM_BODY) {
-            parameters.set(i, helpers.buildParameter(
-                this.replace,
-                currentParameter.getValue(),
-                IParameter.PARAM_MULTIPART_ATTR));
-            BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
-            wasChanged = true;
-          } else {
-            parameters.set(i, helpers.buildParameter(
-                this.replace,
-                currentParameter.getValue(),
-                currentParameter.getType()));
-            BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
-            wasChanged = true;
-          }
-        }
-      }
-      // Bail if anything was changed
-      if (this.which.equals("Replace First")) {
-        if (wasChanged) {
-          break;
-        }
-      }
-    }
-    if (wasChanged) {
-      byte[] tempRequest = Arrays.copyOf(request, request.length);
-      // Remove every parameter
-      for (IParameter param : originalParameters) {
-        tempRequest = helpers.removeParameter(tempRequest, param);
-      }
-      // Add them back
-      for (IParameter param : parameters) {
-        tempRequest = helpers.addParameter(tempRequest, param);
-      }
-      // Update the body and headers
-      IRequestInfo tempAnalyzedRequest = helpers.analyzeRequest(tempRequest);
-      byte[] body = Arrays
-          .copyOfRange(tempRequest, tempAnalyzedRequest.getBodyOffset(), tempRequest.length);
-      List<String> headers = tempAnalyzedRequest.getHeaders();
-      return helpers.buildHttpMessage(headers, body);
-    }
-    // Return the modified request
-    return request;
-    //request = updateBurpParamName(request, IParameter.PARAM_BODY,
-    //    MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
-    //return updateBurpParamName(request, IParameter.PARAM_URL,
-    //    MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
   }
 
   private byte[] updateRequestParamValue(byte[] request) {
-    request = updateBurpParamName(request, IParameter.PARAM_BODY,
-        MatchAndReplaceType.MATCH_VALUE_REPLACE_VALUE);
-    return updateBurpParamName(request, IParameter.PARAM_URL,
-        MatchAndReplaceType.MATCH_VALUE_REPLACE_VALUE);
+    if (!Utils.isRequestMultipartForm(request)) {
+      request = updateBurpParam(request, IParameter.PARAM_BODY,
+          MatchAndReplaceType.MATCH_VALUE_REPLACE_VALUE);
+      return updateBurpParam(request, IParameter.PARAM_URL,
+          MatchAndReplaceType.MATCH_VALUE_REPLACE_VALUE);
+    } else {
+      return request;
+    }
+  }
+
+  private byte[] updateRequestParamValueByName(byte[] request) {
+    if (!Utils.isRequestMultipartForm(request)) {
+      request = updateBurpParam(request, IParameter.PARAM_BODY,
+          MatchAndReplaceType.MATCH_NAME_REPLACE_VALUE);
+      return updateBurpParam(request, IParameter.PARAM_URL,
+          MatchAndReplaceType.MATCH_NAME_REPLACE_VALUE);
+    } else {
+      return request;
+    }
   }
 
   private byte[] updateCookieName(byte[] request) {
-    return updateBurpParamName(request, IParameter.PARAM_COOKIE,
+    return updateBurpParam(request, IParameter.PARAM_COOKIE,
         MatchAndReplaceType.MATCH_NAME_REPLACE_NAME);
   }
 
   private byte[] updateCookieValue(byte[] request) {
-    return updateBurpParamName(request, IParameter.PARAM_COOKIE,
+    return updateBurpParam(request, IParameter.PARAM_COOKIE,
         MatchAndReplaceType.MATCH_VALUE_REPLACE_VALUE);
   }
 
   private byte[] removeParameterByName(byte[] request) {
-    request = updateBurpParamName(request, IParameter.PARAM_BODY,
-        MatchAndReplaceType.MATCH_NAME_REMOVE);
-    return updateBurpParamName(request, IParameter.PARAM_URL,
-        MatchAndReplaceType.MATCH_NAME_REMOVE);
+    if (!Utils.isRequestMultipartForm(request)) {
+      request = updateBurpParam(request, IParameter.PARAM_BODY,
+          MatchAndReplaceType.MATCH_NAME_REMOVE);
+      return updateBurpParam(request, IParameter.PARAM_URL,
+          MatchAndReplaceType.MATCH_NAME_REMOVE);
+    } else {
+      return request;
+    }
   }
 
   private byte[] removeParameterByValue(byte[] request) {
-    request = updateBurpParamName(request, IParameter.PARAM_BODY,
-        MatchAndReplaceType.MATCH_VALUE_REMOVE);
-    return updateBurpParamName(request, IParameter.PARAM_URL,
-        MatchAndReplaceType.MATCH_VALUE_REMOVE);
+    if (Utils.isRequestMultipartForm(request)) {
+      request = updateBurpParam(request, IParameter.PARAM_BODY,
+          MatchAndReplaceType.MATCH_VALUE_REMOVE);
+      return updateBurpParam(request, IParameter.PARAM_URL,
+          MatchAndReplaceType.MATCH_VALUE_REMOVE);
+    } else {
+      return request;
+    }
   }
 
   private byte[] removeCookieByName(byte[] request) {
-    return updateBurpParamName(request, IParameter.PARAM_COOKIE,
+    return updateBurpParam(request, IParameter.PARAM_COOKIE,
         MatchAndReplaceType.MATCH_NAME_REMOVE);
   }
 
   private byte[] removeCookieByValue(byte[] request) {
-    return updateBurpParamName(request, IParameter.PARAM_COOKIE,
+    return updateBurpParam(request, IParameter.PARAM_COOKIE,
         MatchAndReplaceType.MATCH_VALUE_REMOVE);
+  }
+
+  private byte[] updateCookieValueByName(byte[] request) {
+    return updateBurpParam(request, IParameter.PARAM_COOKIE,
+        MatchAndReplaceType.MATCH_NAME_REPLACE_VALUE);
   }
 
   private byte[] updateRequestFirstLine(byte[] request) {
@@ -406,6 +443,10 @@ class Replacement {
           return removeCookieByName(request);
         case ("Remove Cookie By Value"):
           return removeCookieByValue(request);
+        case ("Match Param Name, Replace Value"):
+          return updateRequestParamValueByName(request);
+        case ("Match Cookie Name, Replace Value"):
+          return updateCookieValueByName(request);
         default:
           return request;
       }
