@@ -1214,6 +1214,7 @@ public class AutoRepeater implements IMessageEditorController {
                      callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
              logManager.addEntry(newLogEntry);
              logManager.fireTableRowsUpdated(row, row);
+             BurpExtender.highlightTab();
            }
          }
      } else {
@@ -1274,6 +1275,7 @@ public class AutoRepeater implements IMessageEditorController {
                    callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
                logManager.addEntry(newLogEntry);
                logManager.fireTableRowsUpdated(row, row);
+               BurpExtender.highlightTab();
              }
            }
          }

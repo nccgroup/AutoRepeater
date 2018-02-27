@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.Timer;
 
 public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContextMenuFactory {
 
@@ -19,8 +20,9 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   private static IBurpExtenderCallbacks callbacks;
   private static IExtensionHelpers helpers;
   private static Gson gson;
+  private static JTabbedPane mainTabbedPane;
+  private static JTabbedPane parentTabbedPane;
   private ArrayList<AutoRepeater> autoRepeaters;
-  private JTabbedPane mainTabbedPane;
   private JPanel newTabButton;
   private int tabCounter = 0;
   private boolean tabChangeListenerLock = false;
@@ -94,6 +96,9 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       });
       // Add A Custom Tab To Burp
       callbacks.addSuiteTab(BurpExtender.this);
+      // set parent component
+      parentTabbedPane = (JTabbedPane) getUiComponent().getParent();
+      //Utils.highlightParentTab((JTabbedPane) getUiComponent().getParent(), getUiComponent());
     });
   }
 
@@ -127,6 +132,27 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     mainTabbedPane.remove(newTabButton);
     mainTabbedPane.add(newTabButton);
     tabChangeListenerLock = false;
+  }
+
+  public static void highlightTab() {
+    if (parentTabbedPane != null) {
+      for (int i = 0; i < parentTabbedPane.getTabCount(); i++) {
+        if (parentTabbedPane.getComponentAt(i).equals(mainTabbedPane)) {
+          parentTabbedPane.setBackgroundAt(i, Utils.getBurpOrange());
+          Timer timer = new Timer(3000, e -> {
+            for (int j = 0; j < parentTabbedPane.getTabCount(); j++) {
+              if (parentTabbedPane.getComponentAt(j).equals(mainTabbedPane)) {
+                parentTabbedPane.setBackgroundAt(j, Color.BLACK);
+                break;
+              }
+            }
+          });
+          timer.setRepeats(false);
+          timer.start();
+          break;
+        }
+      }
+    }
   }
 
   // implement ITab
@@ -259,7 +285,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
     listener = event -> new Thread(() -> {
       if (toolFlag != -1) {
-        Utils.highlightParentTab((JTabbedPane) getUiComponent().getParent(), getUiComponent());
+        //Utils.highlightParentTab((JTabbedPane) getUiComponent().getParent(), getUiComponent());
         for (AutoRepeater autoRepeater : autoRepeaters) {
           for (IHttpRequestResponse requestResponse : requestResponses) {
             autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, requestResponse, true);

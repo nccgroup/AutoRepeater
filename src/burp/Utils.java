@@ -324,7 +324,6 @@ public class Utils {
     IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
     List<String> headers = analyzedRequest.getHeaders();
     return headers.stream().anyMatch((h) -> h.startsWith("Content-Type: multipart/form-data;"));
-
   }
 
   public static void highlightParentTab(JTabbedPane parentTabbedPane, Component childComponent) {

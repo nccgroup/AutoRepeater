@@ -24,7 +24,8 @@ class Replacement {
       "Remove Cookie By Value",
 
       "Match Param Name, Replace Value",
-      "Match Cookie Name, Replace Value"
+      "Match Cookie Name, Replace Value",
+      "Match Header Name, Replace Value"
       //"Remove Header By Name",
       //"Remove Header By Value"
   };
@@ -202,6 +203,39 @@ class Replacement {
           if (header.equals(this.match)) {
             header = this.replace;
             wasChanged = true;
+          }
+        }
+      }
+      // Don't add empty headers, they mess things up
+      if (!header.equals("")) {
+        newHeaders.add(header);
+      }
+    }
+    return helpers.buildHttpMessage(newHeaders, body);
+  }
+
+  private byte[] matchHeaderNameUpdateValue(byte[] request) {
+    IExtensionHelpers helpers = BurpExtender.getHelpers();
+    IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
+    List<String> headers = analyzedRequest.getHeaders();
+    byte[] body = Arrays.copyOfRange(request, analyzedRequest.getBodyOffset(), request.length);
+    ArrayList<String> newHeaders = new ArrayList<>();
+    boolean wasChanged = false;
+    for (String header : headers) {
+      String[] splitHeader = header.split(":", 2);
+      if (splitHeader.length == 2) {
+        String headerName = splitHeader[0];
+        if (!replaceFirst() || (replaceFirst() && !wasChanged)) {
+          if (this.isRegexMatch) {
+            if (headerName.matches(this.match)) {
+              header = headerName+": "+this.replace;
+              wasChanged = true;
+            }
+          } else {
+            if (headerName.equals(this.match)) {
+              header = headerName+": "+this.replace;
+              wasChanged = true;
+            }
           }
         }
       }
@@ -447,6 +481,8 @@ class Replacement {
           return updateRequestParamValueByName(request);
         case ("Match Cookie Name, Replace Value"):
           return updateCookieValueByName(request);
+        case ("Match Header Name, Replace Value"):
+          return matchHeaderNameUpdateValue(request);
         default:
           return request;
       }
