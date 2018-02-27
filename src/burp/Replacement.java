@@ -18,6 +18,8 @@ class Replacement {
       "Request First Line",
       "Request String",
 
+      "Add Header",
+
       "Remove Parameter By Name",
       "Remove Parameter By Value",
       "Remove Cookie By Name",
@@ -213,6 +215,20 @@ class Replacement {
     }
     return helpers.buildHttpMessage(newHeaders, body);
   }
+
+  private byte[] addHeader(byte[] request) {
+    IExtensionHelpers helpers = BurpExtender.getHelpers();
+    IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
+    List<String> headers = analyzedRequest.getHeaders();
+    // Strip content-length to make sure it's the last param
+    if (headers.get(headers.size()-1).startsWith("Content-Length:")) {
+      headers.remove(headers.size()-1);
+    }
+    byte[] body = Arrays.copyOfRange(request, analyzedRequest.getBodyOffset(), request.length);
+    headers.add(this.replace);
+    return helpers.buildHttpMessage(headers, body);
+  }
+
 
   private byte[] matchHeaderNameUpdateValue(byte[] request) {
     IExtensionHelpers helpers = BurpExtender.getHelpers();
@@ -469,6 +485,8 @@ class Replacement {
           return updateRequestFirstLine(request);
         case ("Request String"):
           return updateContent(request);
+        case ("Add Header"):
+          return addHeader(request);
         case ("Remove Parameter By Name"):
           return removeParameterByName(request);
         case ("Remove Parameter By Value"):
