@@ -818,14 +818,14 @@ public class AutoRepeater implements IMessageEditorController {
     JLabel lineDiffRequestLabel = new JLabel("Request");
     JLabel lineDiffResponseLabel = new JLabel("Response");
 
-    originalRequestLabel.setForeground(new Color(226, 135, 0));
-    originalResponseLabel.setForeground(new Color(226, 135, 0));
-    modifiedRequestLabel.setForeground(new Color(226, 135, 0));
-    modifiedResponseLabel.setForeground(new Color(226, 135, 0));
-    diffRequestLabel.setForeground(new Color(226, 135, 0));
-    diffResponseLabel.setForeground(new Color(226, 135, 0));
-    lineDiffRequestLabel.setForeground(new Color(226, 135, 0));
-    lineDiffResponseLabel.setForeground(new Color(226, 135, 0));
+    originalRequestLabel.setForeground(Utils.getBurpOrange());
+    originalResponseLabel.setForeground(Utils.getBurpOrange());
+    modifiedRequestLabel.setForeground(Utils.getBurpOrange());
+    modifiedResponseLabel.setForeground(Utils.getBurpOrange());
+    diffRequestLabel.setForeground(Utils.getBurpOrange());
+    diffResponseLabel.setForeground(Utils.getBurpOrange());
+    lineDiffRequestLabel.setForeground(Utils.getBurpOrange());
+    lineDiffResponseLabel.setForeground(Utils.getBurpOrange());
 
     originalRequestLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
     originalResponseLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -1214,6 +1214,7 @@ public class AutoRepeater implements IMessageEditorController {
                      callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
              logManager.addEntry(newLogEntry);
              logManager.fireTableRowsUpdated(row, row);
+             BurpExtender.highlightTab();
            }
          }
      } else {
@@ -1274,6 +1275,7 @@ public class AutoRepeater implements IMessageEditorController {
                    callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
                logManager.addEntry(newLogEntry);
                logManager.fireTableRowsUpdated(row, row);
+               BurpExtender.highlightTab();
              }
            }
          }
