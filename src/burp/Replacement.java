@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
 
 class Replacement {
-
   public static final String[] REPLACEMENT_TYPE_OPTIONS = {
       "Request Header",
       "Request Body",
@@ -76,8 +76,22 @@ class Replacement {
       MatchAndReplaceType matchAndReplaceType) {
     IExtensionHelpers helpers = BurpExtender.getHelpers();
     IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
-    List<IParameter> parameters = analyzedRequest.getParameters();
-    List<IParameter> originalParameters = analyzedRequest.getParameters();
+    // Need to only use params that can be added or removed.
+    List<IParameter> parameters = analyzedRequest.getParameters().stream()
+        .filter(p -> p.getType() == parameterType)
+        .collect(Collectors.toList());
+    List<IParameter> originalParameters = analyzedRequest.getParameters().stream()
+        .filter(p -> p.getType() == parameterType)
+        .collect(Collectors.toList());
+
+    for (IParameter param : originalParameters) {
+      BurpExtender.getCallbacks().printOutput(param.getName());
+    }
+    BurpExtender.getCallbacks().printOutput("-----");
+    for (IParameter param : parameters) {
+      BurpExtender.getCallbacks().printOutput(param.getName());
+    }
+
     boolean wasChanged = false;
     for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
       int i = iterator.nextIndex();
@@ -228,7 +242,6 @@ class Replacement {
     headers.add(this.replace);
     return helpers.buildHttpMessage(headers, body);
   }
-
 
   private byte[] matchHeaderNameUpdateValue(byte[] request) {
     IExtensionHelpers helpers = BurpExtender.getHelpers();
