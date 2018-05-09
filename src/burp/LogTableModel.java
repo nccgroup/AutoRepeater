@@ -11,6 +11,10 @@ public class LogTableModel extends AbstractTableModel {
     log.add(newLogEntry);
   }
 
+  public void clearLogs() {
+    log.clear();
+  }
+
   public LogEntry getLogEntry(int row) {
     return log.get(row);
   }

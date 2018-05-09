@@ -8,12 +8,10 @@ public class LogManager {
 
   private LogTableModel logTableModel;
   private ArrayList<LogEntry> entriesWithoutResponses;
-  //private IBurpExtenderCallbacks callbacks;
   private int matchCounter = 0;
 
   public LogManager(LogTableModel logTableModel) {
     this.logTableModel = logTableModel;
-    //this.callbacks = callbacks;
     entriesWithoutResponses = new ArrayList<>();
   }
 

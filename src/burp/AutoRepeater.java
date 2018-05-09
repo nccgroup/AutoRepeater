@@ -7,6 +7,8 @@ import com.google.gson.JsonObject;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -1194,7 +1196,7 @@ public class AutoRepeater implements IMessageEditorController {
                    globalReplacement.performReplacement(baseReplacedRequestResponse));
          }
          //Add the base replaced request to the request set
-         requestSet.add(baseReplacedRequestResponse);
+         //requestSet.add(baseReplacedRequestResponse);
          // Perform all the seperate replacements on the request+base replacements and add them to the set
          for (Replacement replacement : replacementTableModel.getReplacements()) {
            IHttpRequestResponse newHttpRequest = Utils
@@ -1221,9 +1223,9 @@ public class AutoRepeater implements IMessageEditorController {
        //Although this isn't optimal, i'm generating the modified requests when a response is received.
        //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
        //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
-       if (!messageIsRequest
+       if ((!messageIsRequest
            && activatedButton.isSelected()
-           && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
+           && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER)) {
          boolean meetsConditions = false;
          if (conditionTableModel.getConditions().size() == 0) {
            meetsConditions = true;
@@ -1255,7 +1257,7 @@ public class AutoRepeater implements IMessageEditorController {
                  globalReplacement.performReplacement(baseReplacedRequestResponse));
            }
            //Add the base replaced request to the request set
-           requestSet.add(baseReplacedRequestResponse);
+           //requestSet.add(baseReplacedRequestResponse);
            // Perform all the seperate replacements on the request+base replacements and add them to the set
            for (Replacement replacement : replacementTableModel.getReplacements()) {
              IHttpRequestResponse newHttpRequest = Utils
@@ -1412,7 +1414,7 @@ public class AutoRepeater implements IMessageEditorController {
     }
   }
   // JTable for Viewing Logs
-  private class LogTable extends JTable {
+  public class LogTable extends JTable {
 
     public LogTable(TableModel tableModel) {
       super(tableModel);
@@ -1423,6 +1425,39 @@ public class AutoRepeater implements IMessageEditorController {
       super.changeSelection(row, col, toggle, extend);
       // show the log entry for the selected row
       LogEntry logEntry = logManager.getLogEntry(convertRowIndexToModel(row));
+
+        //final LogTable _this = this;
+        this.addMouseListener( new MouseAdapter()
+        {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            onMouseEvent(e);
+          }
+
+          @Override
+          public void mouseReleased( MouseEvent e ){
+            onMouseEvent(e);
+          }
+
+          @Override
+          public void mousePressed(MouseEvent e) {
+            onMouseEvent(e);
+          }
+
+          private void onMouseEvent(MouseEvent e){
+            if ( SwingUtilities.isRightMouseButton( e )){
+              Point p = e.getPoint();
+              final int row = convertRowIndexToModel(rowAtPoint(p));
+              final int col = convertColumnIndexToModel(columnAtPoint(p));
+              if (e.isPopupTrigger() && e.getComponent() instanceof JTable ) {
+                getSelectionModel().setSelectionInterval(row, row);
+                new LogEntryMenu(logManager, logTable, row, col).show(e.getComponent(), e.getX(), e.getY());
+              }
+            }
+          }
+        });
+        //LoggerPlusPlus.getInstance().addFilterListener(this);
+
 
       // There's a delay while changing selections because setting the diff viewer is slow.
       new Thread(() -> {
@@ -1453,7 +1488,6 @@ public class AutoRepeater implements IMessageEditorController {
               .diffLines(new String(originalResponse), new String(modifiedResponse));
           updateRequestViewers();
         }).start();
-
         updateRequestViewers();
 
         // Hack to speed up the ui

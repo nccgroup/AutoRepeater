@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 class Replacement {
   public static final String[] REPLACEMENT_TYPE_OPTIONS = {
+      "Request String",
+
       "Request Header",
       "Request Body",
       "Request Param Name",
@@ -16,7 +18,6 @@ class Replacement {
       "Request Cookie Name",
       "Request Cookie Value",
       "Request First Line",
-      "Request String",
 
       "Add Header",
 
@@ -301,7 +302,6 @@ class Replacement {
         wasChanged = true;
       }
     }
-
     // This helps deal with binary data getting messed up from the string conversion and causing a new request.
     if (wasChanged) {
       return helpers.buildHttpMessage(headers, body);
@@ -309,79 +309,6 @@ class Replacement {
       return request;
     }
   }
-
-  //private byte[] updateRequestParamName(byte[] request) {
-  //  IExtensionHelpers helpers = BurpExtender.getHelpers();
-  //  IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
-  //  List<IParameter> parameters = analyzedRequest.getParameters();
-  //  List<IParameter> originalParameters = analyzedRequest.getParameters();
-  //  boolean requestIsMultipartForm = Utils.isRequestMultipartForm(request);
-  //  boolean wasChanged = false;
-
-  //  BurpExtender.getCallbacks().printOutput("Request is multipart form: ");
-  //  BurpExtender.getCallbacks().printOutput(Boolean.toString(Utils.isRequestMultipartForm(request)));
-
-  //  if (requestIsMultipartForm) {
-  //    BurpExtender.getCallbacks().printOutput("Boundary: ");
-  //    BurpExtender.getCallbacks().printOutput(Utils.getMultipartBoundary(request));
-  //    Utils.getMultipartParameters(request);
-  //  }
-
-  //  for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
-  //    int i = iterator.nextIndex();
-  //    IParameter currentParameter = iterator.next();
-  //    BurpExtender.getCallbacks().printOutput(currentParameter.getName());
-  //    BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
-  //    BurpExtender.getCallbacks().printOutput(Byte.toString(currentParameter.getType()));
-  //    // Each if statement checks if isRegexMatch && check regex
-  //    // || regular string compare
-  //    if (currentParameter.getType() == IParameter.PARAM_URL ||
-  //        currentParameter.getType() == IParameter.PARAM_BODY) {
-  //      if ((this.isRegexMatch && currentParameter.getName().matches(this.match))
-  //          || currentParameter.getName().equals(this.match)) {
-  //        if (requestIsMultipartForm && currentParameter.getType() == IParameter.PARAM_BODY) {
-  //          parameters.set(i, helpers.buildParameter(
-  //              this.replace,
-  //              currentParameter.getValue(),
-  //              IParameter.PARAM_MULTIPART_ATTR));
-  //          BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
-  //          wasChanged = true;
-  //        } else {
-  //          parameters.set(i, helpers.buildParameter(
-  //              this.replace,
-  //              currentParameter.getValue(),
-  //              currentParameter.getType()));
-  //          BurpExtender.getCallbacks().printOutput("SUCCESS!!!");
-  //          wasChanged = true;
-  //        }
-  //      }
-  //    }
-  //    // Bail if anything was changed
-  //    if (this.which.equals("Replace First")) {
-  //      if (wasChanged) {
-  //        break;
-  //      }
-  //    }
-  //  }
-  //  if (wasChanged) {
-  //    byte[] tempRequest = Arrays.copyOf(request, request.length);
-  //    // Remove every parameter
-  //    for (IParameter param : originalParameters) {
-  //      tempRequest = helpers.removeParameter(tempRequest, param);
-  //    }
-  //    // Add them back
-  //    for (IParameter param : parameters) {
-  //      tempRequest = helpers.addParameter(tempRequest, param);
-  //    }
-  //    // Update the body and headers
-  //    IRequestInfo tempAnalyzedRequest = helpers.analyzeRequest(tempRequest);
-  //    byte[] body = Arrays
-  //        .copyOfRange(tempRequest, tempAnalyzedRequest.getBodyOffset(), tempRequest.length);
-  //    List<String> headers = tempAnalyzedRequest.getHeaders();
-  //    return helpers.buildHttpMessage(headers, body);
-  //  }
-  //  return request;
-  //}
 
   private byte[] updateRequestParamName(byte[] request) {
     if (!Utils.isRequestMultipartForm(request)) {
