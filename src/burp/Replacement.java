@@ -82,8 +82,8 @@ class Replacement {
     for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
       int i = iterator.nextIndex();
       IParameter currentParameter = iterator.next();
-      BurpExtender.getCallbacks().printOutput(currentParameter.getName());
-      BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
+      //BurpExtender.getCallbacks().printOutput(currentParameter.getName());
+      //BurpExtender.getCallbacks().printOutput(currentParameter.getValue());
       if (currentParameter.getType() == parameterType) {
         switch (matchAndReplaceType) {
           case MATCH_NAME_REPLACE_NAME:
