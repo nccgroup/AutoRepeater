@@ -438,6 +438,7 @@ public class AutoRepeater implements IMessageEditorController {
       replacementTypeComboBox.setSelectedItem(tempReplacement.getType());
       replacementMatchTextField.setText(tempReplacement.getMatch());
       replacementReplaceTextField.setText(tempReplacement.getReplace());
+      replacementCountComboBox.setSelectedItem(tempReplacement.getWhich());
       replacementCommentTextField.setText(tempReplacement.getComment());
       replacementIsRegexCheckBox.setSelected(tempReplacement.isRegexMatch());
 
@@ -530,6 +531,7 @@ public class AutoRepeater implements IMessageEditorController {
       replacementTypeComboBox.setSelectedItem(tempReplacement.getType());
       replacementMatchTextField.setText(tempReplacement.getMatch());
       replacementReplaceTextField.setText(tempReplacement.getReplace());
+      replacementCountComboBox.setSelectedItem(tempReplacement.getWhich());
       replacementCommentTextField.setText(tempReplacement.getComment());
       replacementIsRegexCheckBox.setSelected(tempReplacement.isRegexMatch());
 
