@@ -278,9 +278,10 @@ public class AutoRepeater implements IMessageEditorController {
       }
     });
 
-    activatedButton.setPreferredSize(new Dimension(160, 20));
-    activatedButton.setMaximumSize(new Dimension(160, 20));
-    activatedButton.setMinimumSize(new Dimension(160, 20));
+    Dimension activatedDimension = new Dimension(200, 20);
+    activatedButton.setPreferredSize(activatedDimension);
+    activatedButton.setMaximumSize(activatedDimension);
+    activatedButton.setMinimumSize(activatedDimension);
 
     Dimension dialogDimension = new Dimension(300, 140);
     Dimension comboBoxDimension = new Dimension(200, 20);
@@ -398,7 +399,7 @@ public class AutoRepeater implements IMessageEditorController {
     replacementPanel.add(replacementIsRegexCheckBox, c);
 
     // Initialize addGlobalReplacementButton
-    Dimension buttonDimension = new Dimension(75, 20);
+    Dimension buttonDimension = new Dimension(80, 20);
     addGlobalReplacementButton = new JButton("Add");
     addGlobalReplacementButton.setPreferredSize(buttonDimension);
     addGlobalReplacementButton.setMinimumSize(buttonDimension);
@@ -741,8 +742,8 @@ public class AutoRepeater implements IMessageEditorController {
     configurationPane.setLayout(new GridBagLayout());
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.fill = GridBagConstraints.BOTH;
     configurationPane.add(activatedButton, c);
+    c.fill = GridBagConstraints.BOTH;
     c.weightx = 1;
     c.weighty = 1;
     c.gridy = 1;
