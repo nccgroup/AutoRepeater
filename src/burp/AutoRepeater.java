@@ -283,9 +283,9 @@ public class AutoRepeater implements IMessageEditorController {
     activatedButton.setMaximumSize(activatedDimension);
     activatedButton.setMinimumSize(activatedDimension);
 
-    Dimension dialogDimension = new Dimension(300, 140);
-    Dimension comboBoxDimension = new Dimension(200, 20);
-    Dimension textFieldDimension = new Dimension(200, 25);
+    Dimension dialogDimension = new Dimension(400, 140);
+    Dimension comboBoxDimension = new Dimension(250, 20);
+    Dimension textFieldDimension = new Dimension(250, 25);
     //Condition Dialog
     c = new GridBagConstraints();
     conditionPanel = new JPanel();
@@ -399,7 +399,7 @@ public class AutoRepeater implements IMessageEditorController {
     replacementPanel.add(replacementIsRegexCheckBox, c);
 
     // Initialize addGlobalReplacementButton
-    Dimension buttonDimension = new Dimension(80, 20);
+    Dimension buttonDimension = new Dimension(75, 20);
     addGlobalReplacementButton = new JButton("Add");
     addGlobalReplacementButton.setPreferredSize(buttonDimension);
     addGlobalReplacementButton.setMinimumSize(buttonDimension);
@@ -657,6 +657,9 @@ public class AutoRepeater implements IMessageEditorController {
 
     conditionsButtonPanel = new JPanel();
     conditionsButtonPanel.setLayout(new GridBagLayout());
+    conditionsButtonPanel.setPreferredSize(new Dimension(75, 60));
+    conditionsButtonPanel.setMaximumSize(new Dimension(75, 60));
+    conditionsButtonPanel.setPreferredSize(new Dimension(75, 60));
 
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.FIRST_LINE_END;
@@ -724,7 +727,7 @@ public class AutoRepeater implements IMessageEditorController {
     conditionsPanel.setLayout(new GridBagLayout());
 
     c = new GridBagConstraints();
-    c.ipady = 5;
+    c.ipady = 0;
     c.anchor = GridBagConstraints.PAGE_START;
     c.gridx = 0;
 
@@ -735,11 +738,14 @@ public class AutoRepeater implements IMessageEditorController {
     c.gridx = 1;
     conditionsPanel.add(conditionScrollPane, c);
 
-
     exportPanel = createExportPanel();
 
     configurationPane = new JPanel();
     configurationPane.setLayout(new GridBagLayout());
+    Dimension configurationPaneDimension = new Dimension(400, 150);
+    configurationPane.setMinimumSize(configurationPaneDimension);
+    //configurationPane.setMaximumSize(configurationPaneDimension);
+    configurationPane.setPreferredSize(configurationPaneDimension);
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.NORTHWEST;
     configurationPane.add(activatedButton, c);
