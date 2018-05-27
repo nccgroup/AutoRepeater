@@ -96,10 +96,13 @@ public class AutoRepeater implements IMessageEditorController {
   //private IHttpRequestResponsePersisted currentOriginalRequestResponse;
 
   // The tabbed pane that holds the configuration options
-  private JTabbedPane configurationPane;
+  private JPanel configurationPane;
+  private JTabbedPane configurationTabbedPane;
 
-  // Panel that holds configuration options
-  private JPanel optionsPanel;
+  // Panels that hold configuration options
+  private JPanel replacementsPanel;
+  private JPanel globalReplacementsPanel;
+  private JPanel conditionsPanel;
 
   // Panel that holds export options
   private JPanel exportPanel;
@@ -263,7 +266,7 @@ public class AutoRepeater implements IMessageEditorController {
     originalRequestResponseSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
     modifiedRequestResponseSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
     // This tabbedpane includes the configuration panels
-    configurationPane = new JTabbedPane();
+    configurationTabbedPane = new JTabbedPane();
 
     // Initialize Activated Button
     activatedButton = new JToggleButton("Activate AutoRepeater");
@@ -275,9 +278,10 @@ public class AutoRepeater implements IMessageEditorController {
       }
     });
 
-    activatedButton.setPreferredSize(new Dimension(160, 20));
-    activatedButton.setMaximumSize(new Dimension(160, 20));
-    activatedButton.setMinimumSize(new Dimension(160, 20));
+    Dimension activatedDimension = new Dimension(200, 20);
+    activatedButton.setPreferredSize(activatedDimension);
+    activatedButton.setMaximumSize(activatedDimension);
+    activatedButton.setMinimumSize(activatedDimension);
 
     Dimension dialogDimension = new Dimension(300, 140);
     Dimension comboBoxDimension = new Dimension(200, 20);
@@ -395,7 +399,7 @@ public class AutoRepeater implements IMessageEditorController {
     replacementPanel.add(replacementIsRegexCheckBox, c);
 
     // Initialize addGlobalReplacementButton
-    Dimension buttonDimension = new Dimension(75, 20);
+    Dimension buttonDimension = new Dimension(80, 20);
     addGlobalReplacementButton = new JButton("Add");
     addGlobalReplacementButton.setPreferredSize(buttonDimension);
     addGlobalReplacementButton.setMinimumSize(buttonDimension);
@@ -672,8 +676,6 @@ public class AutoRepeater implements IMessageEditorController {
     // Panel containing globalReplacement options
     JPanel globalReplacementsPanel;
     globalReplacementsPanel = new JPanel();
-    globalReplacementsPanel
-        .setBorder(BorderFactory.createTitledBorder(grayline, "Base Replacements"));
     globalReplacementsPanel.setLayout(new GridBagLayout());
 
     c = new GridBagConstraints();
@@ -697,7 +699,6 @@ public class AutoRepeater implements IMessageEditorController {
     // Panel containing replacement options
     JPanel replacementsPanel;
     replacementsPanel = new JPanel();
-    replacementsPanel.setBorder(BorderFactory.createTitledBorder(grayline, "Replacements"));
     replacementsPanel.setLayout(new GridBagLayout());
 
     c = new GridBagConstraints();
@@ -720,7 +721,6 @@ public class AutoRepeater implements IMessageEditorController {
     // Panel containing condition options
     JPanel conditionsPanel;
     conditionsPanel = new JPanel();
-    conditionsPanel.setBorder(BorderFactory.createTitledBorder(grayline, "Conditions"));
     conditionsPanel.setLayout(new GridBagLayout());
 
     c = new GridBagConstraints();
@@ -735,28 +735,24 @@ public class AutoRepeater implements IMessageEditorController {
     c.gridx = 1;
     conditionsPanel.add(conditionScrollPane, c);
 
-    // Configuration Panels
-    optionsPanel = new JPanel();
-    //optionsPanel.setPreferredSize(new Dimension(300, 10));
-    optionsPanel.setLayout(new GridBagLayout());
 
+    exportPanel = createExportPanel();
+
+    configurationPane = new JPanel();
+    configurationPane.setLayout(new GridBagLayout());
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.NORTHWEST;
-    optionsPanel.add(activatedButton, c);
+    configurationPane.add(activatedButton, c);
     c.fill = GridBagConstraints.BOTH;
     c.weightx = 1;
     c.weighty = 1;
     c.gridy = 1;
-    optionsPanel.add(globalReplacementsPanel, c);
-    c.gridy = 2;
-    optionsPanel.add(replacementsPanel, c);
-    c.gridy = 3;
-    optionsPanel.add(conditionsPanel, c);
 
-    exportPanel = createExportPanel();
-
-    configurationPane.addTab("Options", optionsPanel);
-    configurationPane.addTab("Export", exportPanel);
+    configurationPane.add(configurationTabbedPane, c);
+    configurationTabbedPane.addTab("Base Replacements", globalReplacementsPanel);
+    configurationTabbedPane.addTab("Replacements", replacementsPanel);
+    configurationTabbedPane.addTab("Conditions", conditionsPanel);
+    configurationTabbedPane.addTab("Export", exportPanel);
 
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
