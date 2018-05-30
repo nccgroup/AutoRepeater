@@ -196,14 +196,13 @@ public class Utils {
 
   public static byte[] byteArrayRegexReplaceFirst(byte[] input, String regex, String replacement) {
     try {
-      // I need to specify ASCII here becasue it's the easiest way for me to ensure the byte[] and
+      // I need to specify ASCII here because it's the easiest way for me to ensure the byte[] and
       // resulting string are the same length.
       String inputString = new String(input, "US-ASCII");
       Pattern pattern = Pattern.compile(regex);
       Matcher matcher = pattern.matcher(inputString);
       // I'll be appending a lot of it's just easier to use a list here
       ArrayList<Byte> output = new ArrayList<>();
-
       // the index of the start of the last match
       int currentIndex = 0;
       // Check all occurrences

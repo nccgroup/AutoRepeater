@@ -404,9 +404,9 @@ class Replacement {
     return helpers.buildHttpMessage(headers, body);
   }
 
+  // TODO: Modify this to return List<Byte[]> to support "Replace Each"
   public byte[] performReplacement(IHttpRequestResponse messageInfo) {
     byte[] request = messageInfo.getRequest();
-
     if (this.isEnabled) {
       switch (this.type) {
         case ("Request Header"):

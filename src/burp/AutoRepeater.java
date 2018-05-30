@@ -27,8 +27,7 @@ public class AutoRepeater implements IMessageEditorController {
   private IBurpExtenderCallbacks callbacks;
   private IExtensionHelpers helpers;
   private Gson gson;
-
-  JTabbedPane tabs;
+  private JTabbedPane tabs;
 
   // Splitpane that holds top and bottom halves of the ui
   private JSplitPane mainSplitPane;
@@ -86,14 +85,9 @@ public class AutoRepeater implements IMessageEditorController {
 
   private LogManager logManager;
 
-  // List of log entries that have yet to receive a response
-  //private ArrayList<LogEntry> logEntriesWithoutResponses;
-
   // The current item selected in the log table
   private IHttpRequestResponsePersisted currentOriginalRequestResponse;
   private IHttpRequestResponsePersisted currentModifiedRequestResponse;
-
-  //private IHttpRequestResponsePersisted currentOriginalRequestResponse;
 
   // The tabbed pane that holds the configuration options
   private JPanel configurationPane;
@@ -153,11 +147,8 @@ public class AutoRepeater implements IMessageEditorController {
   private JLabel replacementCountLabel;
 
   private ReplacementTableModel globalReplacementTableModel;
-
   private ReplacementTableModel replacementTableModel;
-
   private ConditionTableModel conditionTableModel;
-
   private JPanel conditionPanel;
 
   private JComboBox<String> booleanOperatorComboBox;
@@ -169,8 +160,6 @@ public class AutoRepeater implements IMessageEditorController {
   private JLabel matchTypeLabel;
   private JLabel matchRelationshipLabel;
   private JLabel matchConditionLabel;
-
-  private JPanel helpPanel;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
@@ -212,23 +201,18 @@ public class AutoRepeater implements IMessageEditorController {
   public JsonObject toJson() {
     JsonObject autoRepeaterJson = new JsonObject();
     autoRepeaterJson.addProperty("isActivated", activatedButton.isSelected());
-
     JsonArray baseReplacementsArray = new JsonArray();
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
-
     for (Condition c : conditionTableModel.getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
-
     for (Replacement r : globalReplacementTableModel.getReplacements()) {
       baseReplacementsArray.add(gson.toJsonTree(r));
     }
-
     for (Replacement r : replacementTableModel.getReplacements()) {
       replacementsArray.add(gson.toJsonTree(r));
     }
-
     autoRepeaterJson.add("baseReplacements", baseReplacementsArray);
     autoRepeaterJson.add("replacements", replacementsArray);
     autoRepeaterJson.add("conditions", conditionsArray);
@@ -260,14 +244,11 @@ public class AutoRepeater implements IMessageEditorController {
     Border grayline = BorderFactory.createLineBorder(Color.GRAY);
     // main splitpane
     mainSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-    //mainSplitPane.setResizeWeight(0.1);
-
     // splitpane that holds request and response viewers
     originalRequestResponseSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
     modifiedRequestResponseSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
     // This tabbedpane includes the configuration panels
     configurationTabbedPane = new JTabbedPane();
-
     // Initialize Activated Button
     activatedButton = new JToggleButton("Activate AutoRepeater");
     activatedButton.addChangeListener(e -> {
@@ -460,7 +441,6 @@ public class AutoRepeater implements IMessageEditorController {
             replacementCommentTextField.getText(),
             replacementIsRegexCheckBox.isSelected()
         );
-
         globalReplacementTableModel.updateReplacement(selectedRow, newReplacement);
         globalReplacementTableModel.fireTableDataChanged();
       }
@@ -553,7 +533,6 @@ public class AutoRepeater implements IMessageEditorController {
             replacementCommentTextField.getText(),
             replacementIsRegexCheckBox.isSelected()
         );
-
         replacementTableModel.updateReplacement(selectedRow, newReplacement);
         replacementTableModel.fireTableDataChanged();
       }
@@ -1027,11 +1006,9 @@ public class AutoRepeater implements IMessageEditorController {
     callbacks.customizeUiComponent(tabs);
     callbacks.customizeUiComponent(globalReplacementScrollPane);
 
-    helpPanel = new JPanel();
-    helpPanel.setLayout(new BorderLayout());
-    helpPanel.add(createHelpViewer());
-    //configurationPane.add("Help", helpPanel);
-
+    //helpPanel = new JPanel();
+    //helpPanel.setLayout(new BorderLayout());
+    //helpPanel.add(createHelpViewer());
   }
 
   private JEditorPane createHelpViewer() {
@@ -1164,7 +1141,6 @@ public class AutoRepeater implements IMessageEditorController {
         false
     ));
   }
-
 
   public void modifyAndSendRequestAndLog(
           int toolFlag,
@@ -1448,6 +1424,7 @@ public class AutoRepeater implements IMessageEditorController {
             onMouseEvent(e);
           }
 
+          // Event for clearing the logs
           private void onMouseEvent(MouseEvent e){
             if ( SwingUtilities.isRightMouseButton( e )){
               Point p = e.getPoint();
@@ -1460,8 +1437,6 @@ public class AutoRepeater implements IMessageEditorController {
             }
           }
         });
-        //LoggerPlusPlus.getInstance().addFilterListener(this);
-
 
       // There's a delay while changing selections because setting the diff viewer is slow.
       new Thread(() -> {
@@ -1493,7 +1468,6 @@ public class AutoRepeater implements IMessageEditorController {
           updateRequestViewers();
         }).start();
         updateRequestViewers();
-
         // Hack to speed up the ui
       }).start();
     }
