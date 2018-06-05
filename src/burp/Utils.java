@@ -2,9 +2,15 @@ package burp;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
@@ -48,6 +54,21 @@ public class Utils {
       }
     }
     return json.toString();
+  }
+
+  public static String readFile(File file) {
+    BufferedReader br;
+    StringBuilder output = new StringBuilder();
+    try {
+      br = new BufferedReader(new FileReader(file));
+      String st;
+      while ((st = br.readLine()) != null) {
+        output.append(st);
+      }
+    } catch (IOException e) {
+      return "";
+    }
+    return output.toString();
   }
 
   public static String exportLogEntriesToCsv (ArrayList<LogEntry> logEntries, boolean exportHttp) {
