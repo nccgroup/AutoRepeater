@@ -1,5 +1,6 @@
-package burp;
+package burp.Replacements;
 
+import burp.Replacements.Replacement;
 import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;

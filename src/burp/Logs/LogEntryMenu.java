@@ -1,4 +1,4 @@
-package burp;
+package burp.Logs;
 
 import burp.AutoRepeater.LogTable;
 import javax.swing.*;
@@ -9,7 +9,7 @@ import java.awt.event.ActionEvent;
  */
 public class LogEntryMenu extends JPopupMenu {
 
-  LogEntryMenu(final LogManager logManager, final LogTable logTable, final int row, final int col) {
+  public LogEntryMenu(final LogManager logManager, final LogTable logTable, final int row, final int col) {
     final LogEntry entry = logManager.getLogTableModel().getLogEntry(row);
     final String columnName = logManager.getLogTableModel().getColumnName(col);
     final String columnValue = logManager.getLogTableModel().getValueAt(row, col).toString();

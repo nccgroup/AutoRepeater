@@ -1,5 +1,16 @@
 package burp;
 
+import burp.Conditions.Condition;
+import burp.Conditions.ConditionTableModel;
+import burp.Logs.LogEntry;
+import burp.Logs.LogEntryMenu;
+import burp.Logs.LogManager;
+import burp.Logs.LogTableModel;
+import burp.Replacements.Replacement;
+import burp.Replacements.ReplacementTableModel;
+import burp.Utils.DiffViewerPane;
+import burp.Utils.HttpComparer;
+import burp.Utils.Utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -9,11 +20,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
@@ -740,6 +747,7 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Conditions", conditionsPanel);
     //configurationTabbedPane.addTab("Export", exportPanel);
     configurationTabbedPane.addTab("Export", createExportPanel());
+    configurationTabbedPane.setSelectedIndex(1);
 
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
@@ -1080,11 +1088,11 @@ public class AutoRepeater implements IMessageEditorController {
         File file = exportPathChooser.getSelectedFile();
         ArrayList<LogEntry> logEntries = new ArrayList<>();
         // Collect relevant entries
-        if((exportWhichComboBox.getSelectedItem()).equals("All Tab Logs")) {
+        if ((exportWhichComboBox.getSelectedItem()).equals("All Tab Logs")) {
           logEntries = logManager.getLogTableModel().getLog();
-        } else if((exportWhichComboBox.getSelectedItem()).equals("Selected Tab Logs")) {
+        } else if ((exportWhichComboBox.getSelectedItem()).equals("Selected Tab Logs")) {
           int[] selectedRows = logTable.getSelectedRows();
-          for(int row : selectedRows) {
+          for (int row : selectedRows) {
             logEntries.add(logManager.getLogEntry(logTable.convertRowIndexToModel(row)));
           }
         }
@@ -1092,13 +1100,13 @@ public class AutoRepeater implements IMessageEditorController {
         boolean exportFullHttp = !((exportValueComboBox.getSelectedItem()).equals("Log Entry"));
 
         if ((exportTypeComboBox.getSelectedItem()).equals("CSV")) {
-          try(PrintWriter out = new PrintWriter(file.getAbsolutePath())){
+          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
             out.println(Utils.exportLogEntriesToCsv(logEntries, exportFullHttp));
           } catch (FileNotFoundException e) {
             e.printStackTrace();
           }
         } else if ((exportTypeComboBox.getSelectedItem()).equals("JSON")) {
-          try(PrintWriter out = new PrintWriter(file.getAbsolutePath())){
+          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
             out.println(Utils.exportLogEntriesToJson(logEntries, exportFullHttp));
           } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -1115,7 +1123,8 @@ public class AutoRepeater implements IMessageEditorController {
     exportPanel.add(exportSettingsLabel);
 
     final String[] EXPORT_WHICH_TAB_SETTINGS_OPTIONS = {"This Tab", "Every Tab"};
-    final JComboBox<String> exportWhichTabSettingsComboBox = new JComboBox<>(EXPORT_WHICH_TAB_SETTINGS_OPTIONS);
+    final JComboBox<String> exportWhichTabSettingsComboBox = new JComboBox<>(
+        EXPORT_WHICH_TAB_SETTINGS_OPTIONS);
     exportWhichTabSettingsComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     exportWhichTabSettingsComboBox.setPreferredSize(comboBoxDimension);
     exportWhichTabSettingsComboBox.setMinimumSize(comboBoxDimension);
@@ -1133,14 +1142,14 @@ public class AutoRepeater implements IMessageEditorController {
         File file = exportPathChooser.getSelectedFile();
         //ArrayList<LogEntry> logEntries = new ArrayList<>();
         // Collect relevant entries
-        if((exportWhichTabSettingsComboBox.getSelectedItem()).equals("This Tab")) {
-          try(PrintWriter out = new PrintWriter(file.getAbsolutePath())){
+        if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("This Tab")) {
+          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
             out.println(BurpExtender.exportSave(this));
           } catch (FileNotFoundException e) {
             e.printStackTrace();
           }
-        } else if((exportWhichTabSettingsComboBox.getSelectedItem()).equals("Every Tab")) {
-          try(PrintWriter out = new PrintWriter(file.getAbsolutePath())){
+        } else if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("Every Tab")) {
+          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
             out.println(BurpExtender.exportSave());
           } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -1156,7 +1165,8 @@ public class AutoRepeater implements IMessageEditorController {
     importSettingsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     final String[] IMPORT_REPLACE_TABS_OPTIONS = {"Do Not Replace Tabs", "Replace Tabs"};
-    final JComboBox<String> importReplaceTabsComboxBox = new JComboBox<>(IMPORT_REPLACE_TABS_OPTIONS);
+    final JComboBox<String> importReplaceTabsComboxBox = new JComboBox<>(
+        IMPORT_REPLACE_TABS_OPTIONS);
     importReplaceTabsComboxBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     importReplaceTabsComboxBox.setPreferredSize(comboBoxDimension);
     importReplaceTabsComboxBox.setMinimumSize(comboBoxDimension);
@@ -1167,7 +1177,6 @@ public class AutoRepeater implements IMessageEditorController {
     importButton.setMaximumSize(buttonDimension);
     importButton.setMaximumSize(buttonDimension);
     importButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
 
     importButton.addActionListener((ActionEvent l) -> {
       int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
@@ -1184,11 +1193,9 @@ public class AutoRepeater implements IMessageEditorController {
         }
       }
     });
-
     exportPanel.add(importSettingsLabel);
     exportPanel.add(importReplaceTabsComboxBox);
     exportPanel.add(importButton);
-
     return new JScrollPane(exportPanel);
   }
 
@@ -1226,127 +1233,75 @@ public class AutoRepeater implements IMessageEditorController {
   }
 
   public void modifyAndSendRequestAndLog(
-          int toolFlag,
-          boolean messageIsRequest,
-          IHttpRequestResponse messageInfo,
-          boolean isSentToAutoRepeater) {
-    // If the message is a request, check all the conditions, if the conditions end up being trust,
-    // perform every replacement and resend the request
-    // if the message is a response, search the list of messages that don't have a response and update the log entry
+      int toolFlag,
+      boolean messageIsRequest,
+      IHttpRequestResponse messageInfo,
+      boolean isSentToAutoRepeater) {
 
-    // At some point i should refactor this whole thing to use a lookup for outgoing requests
-    // and incoming responses but that caused a race condition last time and might be more work
-    // then it's worth
-
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(() -> {
-      // Handle "Send To AutoRepeater"
-     if (isSentToAutoRepeater)  {
-       IHttpRequestResponse newMessageInfo;
-         if (messageIsRequest) {
-           newMessageInfo = BurpExtender.getCallbacks().makeHttpRequest(
-               messageInfo.getHttpService(), messageInfo.getRequest());
-         } else {
-           newMessageInfo = messageInfo;
-         }
-         // This is the same thing as below. If a response is selected we're good
-         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
-         IHttpRequestResponse baseReplacedRequestResponse = Utils
-                 .cloneIHttpRequestResponse(newMessageInfo);
-         // Perform all the base replacements on the captured request
-         for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
-           baseReplacedRequestResponse.setRequest(
-                   globalReplacement.performReplacement(baseReplacedRequestResponse));
-         }
-         //Add the base replaced request to the request set
-         //requestSet.add(baseReplacedRequestResponse);
-         // Perform all the seperate replacements on the request+base replacements and add them to the set
-         for (Replacement replacement : replacementTableModel.getReplacements()) {
-           IHttpRequestResponse newHttpRequest = Utils
-                   .cloneIHttpRequestResponse(baseReplacedRequestResponse);
-           newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
-           requestSet.add(newHttpRequest);
-         }
-         // Perform every unique request and log
-         for (IHttpRequestResponse request : requestSet) {
-           if (!Arrays.equals(request.getRequest(), newMessageInfo.getRequest())) {
-             IHttpRequestResponse modifiedRequestResponse =
-                     callbacks.makeHttpRequest(newMessageInfo.getHttpService(), request.getRequest());
-             int row = logManager.getRowCount();
-             LogEntry newLogEntry = new LogEntry(
-                     row + 1,
-                     callbacks.saveBuffersToTempFiles(newMessageInfo),
-                     callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-             logManager.addEntry(newLogEntry);
-             logManager.fireTableRowsUpdated(row, row);
-             BurpExtender.highlightTab();
-           }
-         }
-     } else {
-       //Although this isn't optimal, i'm generating the modified requests when a response is received.
-       //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
-       //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
-       if ((!messageIsRequest
-           && activatedButton.isSelected()
-           && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER)) {
-         boolean meetsConditions = false;
-         if (conditionTableModel.getConditions().size() == 0) {
-           meetsConditions = true;
-         } else {
-           if (conditionTableModel.getConditions()
-               .stream()
-               .filter(Condition::isEnabled)
-               .filter(c -> c.getBooleanOperator().equals("Or"))
-               .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-             meetsConditions = true;
-           }
-           if (conditionTableModel.getConditions()
-               .stream()
-               .filter(Condition::isEnabled)
-               .filter(
-                   c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
-               .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-             meetsConditions = true;
-           }
-         }
-         if (meetsConditions) {
-           // Create a set to store each new unique request in
-           HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
-           IHttpRequestResponse baseReplacedRequestResponse = Utils
-               .cloneIHttpRequestResponse(messageInfo);
-           // Perform all the base replacements on the captured request
-           for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
-             baseReplacedRequestResponse.setRequest(
-                 globalReplacement.performReplacement(baseReplacedRequestResponse));
-           }
-           //Add the base replaced request to the request set
-           //requestSet.add(baseReplacedRequestResponse);
-           // Perform all the seperate replacements on the request+base replacements and add them to the set
-           for (Replacement replacement : replacementTableModel.getReplacements()) {
-             IHttpRequestResponse newHttpRequest = Utils
-                 .cloneIHttpRequestResponse(baseReplacedRequestResponse);
-             newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
-             requestSet.add(newHttpRequest);
-           }
-           // Perform every unique request and log
-           for (IHttpRequestResponse request : requestSet) {
-             if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
-               IHttpRequestResponse modifiedRequestResponse =
-                   callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
-               int row = logManager.getRowCount();
-               LogEntry newLogEntry = new LogEntry(
-                   row + 1,
-                   callbacks.saveBuffersToTempFiles(messageInfo),
-                   callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-               logManager.addEntry(newLogEntry);
-               logManager.fireTableRowsUpdated(row, row);
-               BurpExtender.highlightTab();
-             }
-           }
-         }
-       }
-     }
-    });
+    //Although this isn't optimal, i'm generating the modified requests when a response is received.
+    //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
+    //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
+    if (((!messageIsRequest || isSentToAutoRepeater)
+        && activatedButton.isSelected()
+        && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER)) {
+      boolean meetsConditions = false;
+      if (conditionTableModel.getConditions().size() == 0) {
+        meetsConditions = true;
+      } else {
+        if (conditionTableModel.getConditions()
+            .stream()
+            .filter(Condition::isEnabled)
+            .filter(c -> c.getBooleanOperator().equals("Or"))
+            .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+          meetsConditions = true;
+        }
+        if (conditionTableModel.getConditions()
+            .stream()
+            .filter(Condition::isEnabled)
+            .filter(
+                c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
+            .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+          meetsConditions = true;
+        }
+      }
+      if (meetsConditions) {
+        // Create a set to store each new unique request in
+        HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
+        IHttpRequestResponse baseReplacedRequestResponse = Utils
+            .cloneIHttpRequestResponse(messageInfo);
+        // Perform all the base replacements on the captured request
+        for (Replacement globalReplacement : globalReplacementTableModel.getReplacements()) {
+          baseReplacedRequestResponse.setRequest(
+              globalReplacement.performReplacement(baseReplacedRequestResponse));
+        }
+        //Add the base replaced request to the request set
+        if(replacementTableModel.getReplacements().size() == 0) {
+          requestSet.add(baseReplacedRequestResponse);
+        }
+        // Perform all the separate replacements on the request+base replacements and add them to the set
+        for (Replacement replacement : replacementTableModel.getReplacements()) {
+          IHttpRequestResponse newHttpRequest = Utils
+              .cloneIHttpRequestResponse(baseReplacedRequestResponse);
+          newHttpRequest.setRequest(replacement.performReplacement(newHttpRequest));
+          requestSet.add(newHttpRequest);
+        }
+        // Perform every unique request and log
+        for (IHttpRequestResponse request : requestSet) {
+          if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
+            IHttpRequestResponse modifiedRequestResponse =
+                callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
+            int row = logManager.getRowCount();
+            LogEntry newLogEntry = new LogEntry(
+                row + 1,
+                callbacks.saveBuffersToTempFiles(messageInfo),
+                callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+            logManager.addEntry(newLogEntry);
+            logManager.fireTableRowsUpdated(row, row);
+            //BurpExtender.highlightTab();
+          }
+        }
+      }
+    }
   }
 
   // Implement IMessageEditorController
@@ -1476,6 +1431,7 @@ public class AutoRepeater implements IMessageEditorController {
         break;
     }
   }
+
   // JTable for Viewing Logs
   public class LogTable extends JTable {
 
@@ -1489,37 +1445,37 @@ public class AutoRepeater implements IMessageEditorController {
       // show the log entry for the selected row
       LogEntry logEntry = logManager.getLogEntry(convertRowIndexToModel(row));
 
-        //final LogTable _this = this;
-        this.addMouseListener( new MouseAdapter()
-        {
-          @Override
-          public void mouseClicked(MouseEvent e) {
-            onMouseEvent(e);
-          }
+      //final LogTable _this = this;
+      this.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          onMouseEvent(e);
+        }
 
-          @Override
-          public void mouseReleased( MouseEvent e ){
-            onMouseEvent(e);
-          }
+        @Override
+        public void mouseReleased(MouseEvent e) {
+          onMouseEvent(e);
+        }
 
-          @Override
-          public void mousePressed(MouseEvent e) {
-            onMouseEvent(e);
-          }
+        @Override
+        public void mousePressed(MouseEvent e) {
+          onMouseEvent(e);
+        }
 
-          // Event for clearing the logs
-          private void onMouseEvent(MouseEvent e){
-            if ( SwingUtilities.isRightMouseButton( e )){
-              Point p = e.getPoint();
-              final int row = convertRowIndexToModel(rowAtPoint(p));
-              final int col = convertColumnIndexToModel(columnAtPoint(p));
-              if (e.isPopupTrigger() && e.getComponent() instanceof JTable ) {
-                getSelectionModel().setSelectionInterval(row, row);
-                new LogEntryMenu(logManager, logTable, row, col).show(e.getComponent(), e.getX(), e.getY());
-              }
+        // Event for clearing the logs
+        private void onMouseEvent(MouseEvent e) {
+          if (SwingUtilities.isRightMouseButton(e)) {
+            Point p = e.getPoint();
+            final int row = convertRowIndexToModel(rowAtPoint(p));
+            final int col = convertColumnIndexToModel(columnAtPoint(p));
+            if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
+              getSelectionModel().setSelectionInterval(row, row);
+              new LogEntryMenu(logManager, logTable, row, col)
+                  .show(e.getComponent(), e.getX(), e.getY());
             }
           }
-        });
+        }
+      });
 
       // There's a delay while changing selections because setting the diff viewer is slow.
       new Thread(() -> {

@@ -1,5 +1,9 @@
-package burp;
+package burp.Logs;
 
+import burp.BurpExtender;
+import burp.IHttpRequestResponsePersisted;
+import burp.IRequestInfo;
+import burp.IResponseInfo;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -168,7 +172,7 @@ public class LogEntry {
   // Orig. Length
   // Mod. Length
 
-  LogEntry(long requestResponseId,
+  public LogEntry(long requestResponseId,
       IHttpRequestResponsePersisted originalRequestResponse,
       IHttpRequestResponsePersisted modifiedRequestResponse) {
 

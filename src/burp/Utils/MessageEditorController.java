@@ -1,4 +1,8 @@
-package burp;
+package burp.Utils;
+
+import burp.IHttpRequestResponse;
+import burp.IHttpService;
+import burp.IMessageEditorController;
 
 public class MessageEditorController implements IMessageEditorController {
 

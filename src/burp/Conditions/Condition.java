@@ -1,5 +1,9 @@
-package burp;
+package burp.Conditions;
 
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
+import burp.IParameter;
+import burp.IRequestInfo;
 import com.google.common.io.Files;
 
 import java.util.Arrays;

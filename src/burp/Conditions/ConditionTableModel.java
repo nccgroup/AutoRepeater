@@ -1,5 +1,6 @@
-package burp;
+package burp.Conditions;
 
+import burp.Conditions.Condition;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 

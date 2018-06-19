@@ -1,5 +1,11 @@
-package burp;
+package burp.Replacements;
 
+import burp.BurpExtender;
+import burp.IExtensionHelpers;
+import burp.IHttpRequestResponse;
+import burp.IParameter;
+import burp.IRequestInfo;
+import burp.Utils.Utils;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,7 +13,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-class Replacement {
+public class Replacement {
   public static final String[] REPLACEMENT_TYPE_OPTIONS = {
       "Request String",
 

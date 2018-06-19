@@ -1,5 +1,7 @@
-package burp;
+package burp.Logs;
 
+import burp.BurpExtender;
+import burp.IHttpRequestResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;

@@ -4,12 +4,16 @@ package burp;
  * Created by j on 8/7/17.
  */
 
+import burp.Utils.ResponseStore;
+import burp.Utils.Utils;
 import com.google.gson.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -25,7 +29,8 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   private static JPanel newTabButton;
   private static int tabCounter = 0;
   private static boolean tabChangeListenerLock = false;
-  private static ResponseStore responseStore;
+  private ExecutorService executor;
+  //private static ResponseStore responseStore;
 
   @Override
   public void registerExtenderCallbacks(final IBurpExtenderCallbacks callbacks) {
@@ -37,7 +42,8 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     BurpExtender.gson = new Gson();
     //BurpExtender.gson = new GsonBuilder().setPrettyPrinting().create();
     autoRepeaters = new ArrayList<>();
-    responseStore = new ResponseStore();
+    executor = Executors.newFixedThreadPool(20);
+    //responseStore = new ResponseStore();
     // create our UI
     SwingUtilities.invokeLater(() -> {
       mainTabbedPane = new JTabbedPane();
@@ -72,7 +78,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       // Add To Right Click Menu
       callbacks.registerContextMenuFactory(BurpExtender.this);
       // Add response store
-      callbacks.registerHttpListener(responseStore);
+      //callbacks.registerHttpListener(responseStore);
       //Save State
       callbacks.registerExtensionStateListener(() -> {
         callbacks.saveExtensionSetting(getTabCaption(), exportSave());
@@ -84,12 +90,12 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     });
   }
 
-  public static String exportSave()  {
+  public static String exportSave() {
     JsonArray BurpExtenderJson = new JsonArray();
     // Don't count the "..." tab
     for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
       AutoRepeaterTabHandle autoRepeaterTabHandle
-          = (AutoRepeaterTabHandle)mainTabbedPane.getTabComponentAt(i);
+          = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(i);
       AutoRepeater ar = autoRepeaterTabHandle.autoRepeater;
       JsonObject AutoRepeaterJson = ar.toJson();
       AutoRepeaterJson.addProperty("tabName", autoRepeaterTabHandle.tabName.getText());
@@ -98,12 +104,12 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
   }
 
-  public static String exportSave(AutoRepeater ar)  {
+  public static String exportSave(AutoRepeater ar) {
     JsonArray BurpExtenderJson = new JsonArray();
     // Don't count the "..." tab
     for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
       AutoRepeaterTabHandle autoRepeaterTabHandle
-          = (AutoRepeaterTabHandle)mainTabbedPane.getTabComponentAt(i);
+          = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(i);
       AutoRepeater tempAR = autoRepeaterTabHandle.autoRepeater;
       if (ar.equals(tempAR)) {
         JsonObject AutoRepeaterJson = tempAR.toJson();
@@ -120,7 +126,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     JsonParser jsonParser = new JsonParser();
     JsonArray tabConfigurations = jsonParser.parse(configurationJson).getAsJsonArray();
     if (replaceTabs) {
-      BurpExtender.getCallbacks().printOutput("Closing Tabs");
       closeAllTabs();
     }
     for (JsonElement tabConfiguration : tabConfigurations) {
@@ -194,18 +199,26 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
   // implement IHttpListener
   @Override
-  public void processHttpMessage(int toolFlag, boolean messageIsRequest,
-      IHttpRequestResponse messageInfo) {
+  public void processHttpMessage(
+      int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
     for (AutoRepeater autoRepeater : autoRepeaters) {
-      autoRepeater.modifyAndSendRequestAndLog(toolFlag, messageIsRequest, messageInfo, false);
+      //ExecutorService executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(15));
+      executor.submit(
+          () -> autoRepeater.modifyAndSendRequestAndLog(
+              toolFlag,
+              messageIsRequest,
+              messageInfo,
+             false)
+      );
+      //autoRepeater.modifyAndSendRequestAndLog(toolFlag, messageIsRequest, messageInfo, false);
     }
   }
 
   public static void closeAllTabs() {
     tabChangeListenerLock = true;
-    getCallbacks().printOutput(Integer.toString(mainTabbedPane.getTabCount()));
-    for (int i = 0; i < mainTabbedPane.getTabCount()-1; i++) {
-      getCallbacks().printOutput("Removing tab: "+i);
+    //getCallbacks().printOutput(Integer.toString(mainTabbedPane.getTabCount()));
+    for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
+      //getCallbacks().printOutput("Removing tab: "+i);
       AutoRepeaterTabHandle arth = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(i);
       autoRepeaters.remove(arth.autoRepeater);
       mainTabbedPane.remove(i);
@@ -311,9 +324,9 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     return helpers;
   }
 
-  public static ResponseStore getResponseStore() { return responseStore; }
-
-  public static ArrayList<AutoRepeater> getAutoRepeaters() { return autoRepeaters; }
+  public static ArrayList<AutoRepeater> getAutoRepeaters() {
+    return autoRepeaters;
+  }
 
   public static Gson getGson() {
     return gson;
@@ -328,10 +341,20 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
     listener = event -> new Thread(() -> {
       if (toolFlag != -1) {
-        for (AutoRepeater autoRepeater : autoRepeaters) {
-          for (IHttpRequestResponse requestResponse : requestResponses) {
-            autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, requestResponse, true);
+        BurpExtender.highlightTab();
+        for (IHttpRequestResponse requestResponse : requestResponses) {
+          final IHttpRequestResponse tempRequestResponse;
+          if (requestResponse.getResponse() == null) {
+            tempRequestResponse = BurpExtender.getCallbacks().makeHttpRequest(
+                requestResponse.getHttpService(), requestResponse.getRequest());
+          } else {
+            tempRequestResponse = requestResponse;
           }
+          executor.submit(() -> {
+            for (AutoRepeater autoRepeater : autoRepeaters) {
+              autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, tempRequestResponse, true);
+            }
+          });
         }
       }
     }).start();

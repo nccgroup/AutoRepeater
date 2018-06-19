@@ -1,4 +1,4 @@
-package burp;
+package burp.Utils;
 
 import javax.swing.*;
 

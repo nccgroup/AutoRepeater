@@ -1,5 +1,6 @@
-package burp;
+package burp.Utils;
 
+import burp.Utils.diff_match_patch;
 import java.util.LinkedList;
 
 public class HttpComparer {

@@ -1,5 +1,6 @@
-package burp;
+package burp.Logs;
 
+import burp.Logs.LogEntry;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
