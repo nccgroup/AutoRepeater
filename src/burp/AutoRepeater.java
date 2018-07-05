@@ -748,7 +748,6 @@ public class AutoRepeater implements IMessageEditorController {
     //configurationTabbedPane.addTab("Export", exportPanel);
     configurationTabbedPane.addTab("Export", createExportPanel());
     configurationTabbedPane.setSelectedIndex(1);
-
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
     logTableModel = new LogTableModel();
@@ -772,8 +771,9 @@ public class AutoRepeater implements IMessageEditorController {
       logTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
     }
 
-    JScrollPane scrollPane = new JScrollPane(logTable);
-    scrollPane.setPreferredSize(new Dimension(10000, 10));
+    JScrollPane logTableScrollPane = new JScrollPane(logTable);
+    logTableScrollPane.setMinimumSize(configurationPaneDimension);
+    logTableScrollPane.setPreferredSize(new Dimension(10000, 10));
 
     // tabs with request/response viewers
     tabs = new JTabbedPane();
@@ -962,8 +962,10 @@ public class AutoRepeater implements IMessageEditorController {
 
     // Split pane containing user interface components
     userInterfaceSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-    userInterfaceSplitPane.setRightComponent(configurationPane);
-    userInterfaceSplitPane.setLeftComponent(scrollPane);
+    if (BurpExtender.showSettingsPanel()) {
+      userInterfaceSplitPane.setRightComponent(configurationPane);
+    }
+    userInterfaceSplitPane.setLeftComponent(logTableScrollPane);
     userInterfaceSplitPane.setResizeWeight(1.0);
     mainSplitPane.setTopComponent(userInterfaceSplitPane);
 
@@ -1012,7 +1014,7 @@ public class AutoRepeater implements IMessageEditorController {
     // I don't know what this actually does but I think it's correct
     callbacks.customizeUiComponent(mainSplitPane);
     callbacks.customizeUiComponent(logTable);
-    callbacks.customizeUiComponent(scrollPane);
+    callbacks.customizeUiComponent(logTableScrollPane);
     callbacks.customizeUiComponent(tabs);
     callbacks.customizeUiComponent(globalReplacementScrollPane);
 
@@ -1301,6 +1303,14 @@ public class AutoRepeater implements IMessageEditorController {
           }
         }
       }
+    }
+  }
+
+  public void toggleConfigurationPane(boolean visible) {
+    if (visible) {
+      userInterfaceSplitPane.setRightComponent(configurationPane);
+    } else {
+      userInterfaceSplitPane.remove(configurationPane);
     }
   }
 

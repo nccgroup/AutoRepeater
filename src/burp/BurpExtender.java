@@ -8,6 +8,7 @@ import burp.Utils.ResponseStore;
 import burp.Utils.Utils;
 import com.google.gson.*;
 
+import com.google.j2objc.annotations.AutoreleasePool;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -25,12 +26,15 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   private static Gson gson;
   private static JTabbedPane mainTabbedPane;
   private static JTabbedPane parentTabbedPane;
-  private static ArrayList<AutoRepeater> autoRepeaters;
   private static JPanel newTabButton;
-  private static int tabCounter = 0;
-  private static boolean tabChangeListenerLock = false;
   private ExecutorService executor;
   //private static ResponseStore responseStore;
+
+  // Global state variables
+  private static int tabCounter = 0;
+  private static boolean tabChangeListenerLock = false;
+  private static ArrayList<AutoRepeater> autoRepeaters;
+  private static boolean showSettingsPanel = true;
 
   @Override
   public void registerExtenderCallbacks(final IBurpExtenderCallbacks callbacks) {
@@ -80,13 +84,14 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       // Add response store
       //callbacks.registerHttpListener(responseStore);
       //Save State
-      callbacks.registerExtensionStateListener(() -> {
-        callbacks.saveExtensionSetting(getTabCaption(), exportSave());
-      });
+      callbacks.registerExtensionStateListener(
+          () -> callbacks.saveExtensionSetting(getTabCaption(), exportSave())
+      );
       // Add A Custom Tab To Burp
       callbacks.addSuiteTab(BurpExtender.this);
       // set parent component
       parentTabbedPane = (JTabbedPane) getUiComponent().getParent();
+      addMenuItem();
     });
   }
 
@@ -184,6 +189,41 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         }
       }
     }
+  }
+
+  private static void addMenuItem() {
+    if (parentTabbedPane != null) {
+      JRootPane rootPane = parentTabbedPane.getRootPane();
+      JMenuBar burpJMenuBar = rootPane.getJMenuBar();
+      // Need to remove the existing Menu Bar to make sure the element corresponds to the
+      // current AutoRepeater instance
+      for (int i = 0; i < burpJMenuBar.getMenuCount(); i++) {
+        if (burpJMenuBar.getMenu(i).getText().equals("AutoRepeater")) {
+          burpJMenuBar.remove(i);
+        }
+      }
+      JMenu autoRepeaterJMenu = new JMenu("AutoRepeater");
+      JMenuItem toggleSettingsVisibility = new JMenuItem("Hide Settings Panel");
+      toggleSettingsVisibility.addActionListener( c -> {
+        if (toggleSettingsVisibility.getText().equals("Hide Settings Panel")) {
+          showSettingsPanel = false;
+          toggleSettingsVisibility.setText("Show Settings Panel");
+        } else {
+          showSettingsPanel = true;
+          toggleSettingsVisibility.setText("Hide Settings Panel");
+        }
+        for (AutoRepeater ar : autoRepeaters) {
+          ar.toggleConfigurationPane(showSettingsPanel);
+        }
+      });
+      // Add the AutoRepeater menu item one from the end.
+      autoRepeaterJMenu.add(toggleSettingsVisibility);
+      burpJMenuBar.add(autoRepeaterJMenu, burpJMenuBar.getMenuCount()-1);
+    }
+  }
+
+  public static boolean showSettingsPanel() {
+    return showSettingsPanel;
   }
 
   // implement ITab
