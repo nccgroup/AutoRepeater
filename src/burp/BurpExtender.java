@@ -66,7 +66,12 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         // Make all tabname not editable whenever the tab is changed
         if (!tabChangeListenerLock) {
           if (mainTabbedPane.getSelectedIndex() == mainTabbedPane.getTabCount() - 1) {
-            addNewTab();
+          //Component selectedTabHandle =
+          //    mainTabbedPane.getTabComponentAt(mainTabbedPane.getSelectedIndex());
+          //if (selectedTabHandle.getName().equals("...")) {
+            if (!tabChangeListenerLock) {
+              addNewTab();
+            }
           }
         }
         for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
@@ -106,7 +111,8 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       AutoRepeaterJson.addProperty("tabName", autoRepeaterTabHandle.tabName.getText());
       BurpExtenderJson.add(AutoRepeaterJson);
     }
-    return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
+    //return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
+    return BurpExtenderJson.toString();
   }
 
   public static String exportSave(AutoRepeater ar) {
@@ -122,12 +128,19 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         BurpExtenderJson.add(AutoRepeaterJson);
       }
     }
-    return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
+    //return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
+    return BurpExtenderJson.toString();
   }
 
-  public static void initializeFromSave(String b64Configuration, boolean replaceTabs) {
-    String configurationJson = new String(Base64.getDecoder().decode(b64Configuration));
-    System.out.println("Loading Stored AutoRepeater Configuration");
+  public static void initializeFromSave(String configuration, boolean replaceTabs) {
+    getCallbacks().printOutput("Loading Stored AutoRepeater Configuration");
+    String configurationJson;
+    // Check if the configuration is B64 encoded for legacy.
+    try {
+      configurationJson = new String(Base64.getDecoder().decode(configuration));
+    } catch (IllegalArgumentException e) {
+      configurationJson = configuration;
+    }
     JsonParser jsonParser = new JsonParser();
     JsonArray tabConfigurations = jsonParser.parse(configurationJson).getAsJsonArray();
     if (replaceTabs) {
@@ -216,9 +229,9 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
           ar.toggleConfigurationPane(showSettingsPanel);
         }
       });
-      // Add the AutoRepeater menu item one from the end.
+      // Add the AutoRepeater menu item two from the end.
       autoRepeaterJMenu.add(toggleSettingsVisibility);
-      burpJMenuBar.add(autoRepeaterJMenu, burpJMenuBar.getMenuCount()-1);
+      burpJMenuBar.add(autoRepeaterJMenu, burpJMenuBar.getMenuCount()-2);
     }
   }
 
@@ -256,12 +269,17 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
   public static void closeAllTabs() {
     tabChangeListenerLock = true;
-    //getCallbacks().printOutput(Integer.toString(mainTabbedPane.getTabCount()));
-    for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
-      //getCallbacks().printOutput("Removing tab: "+i);
-      AutoRepeaterTabHandle arth = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(i);
-      autoRepeaters.remove(arth.autoRepeater);
-      mainTabbedPane.remove(i);
+    int tabCount = mainTabbedPane.getTabCount()-1;
+    for (int i = 0; i < tabCount; i++) {
+      if (mainTabbedPane.getTabComponentAt(0).getClass().equals(AutoRepeaterTabHandle.class)) {
+        try {
+          AutoRepeaterTabHandle arth = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(0);
+          autoRepeaters.remove(arth.autoRepeater);
+          mainTabbedPane.remove(0);
+        } catch (Exception e) {
+          getCallbacks().printOutput(e.getMessage());
+        }
+      }
     }
     tabChangeListenerLock = false;
   }
@@ -341,7 +359,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
             mainTabbedPane.remove(autoRepeater.getUI());
             autoRepeaters.remove(autoRepeater);
           }
-
           if (mainTabbedPane.getSelectedIndex() == mainTabbedPane.getTabCount() - 1) {
             mainTabbedPane.setSelectedIndex(mainTabbedPane.getTabCount() - 2);
           }

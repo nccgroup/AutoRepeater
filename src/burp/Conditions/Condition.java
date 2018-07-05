@@ -150,7 +150,6 @@ public class Condition {
   public boolean checkCondition(int toolFlag, IHttpRequestResponse messageInfo) {
     IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
     byte[] request = messageInfo.getRequest();
-
     switch (this.matchType) {
       case "Domain Name":
         switch (this.matchRelationship) {
