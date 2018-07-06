@@ -15,6 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.*;
 import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContextMenuFactory {
 
@@ -313,6 +315,29 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       closeButton.setBorderPainted(false);
       closeButton.setContentAreaFilled(false);
       closeButton.setOpaque(false);
+
+      // Fix tabname redraw lag.
+      JPanel parent = this;
+      tabName.getDocument().addDocumentListener(
+        new DocumentListener() {
+          @Override
+          public void insertUpdate(DocumentEvent e) {
+            tabName.repaint();
+            parent.validate();
+          }
+
+          @Override
+          public void removeUpdate(DocumentEvent e) {
+            tabName.repaint();
+            parent.validate();
+          }
+
+          @Override
+          public void changedUpdate(DocumentEvent e) {
+            tabName.repaint();
+            parent.validate();
+          }
+      });
 
       tabName.addMouseListener(new MouseAdapter() {
         @Override
