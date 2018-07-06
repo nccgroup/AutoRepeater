@@ -47,7 +47,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     //BurpExtender.gson = new GsonBuilder().setPrettyPrinting().create();
     autoRepeaters = new ArrayList<>();
     executor = Executors.newFixedThreadPool(20);
-    //responseStore = new ResponseStore();
     // create our UI
     SwingUtilities.invokeLater(() -> {
       mainTabbedPane = new JTabbedPane();
@@ -66,9 +65,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         // Make all tabname not editable whenever the tab is changed
         if (!tabChangeListenerLock) {
           if (mainTabbedPane.getSelectedIndex() == mainTabbedPane.getTabCount() - 1) {
-          //Component selectedTabHandle =
-          //    mainTabbedPane.getTabComponentAt(mainTabbedPane.getSelectedIndex());
-          //if (selectedTabHandle.getName().equals("...")) {
             if (!tabChangeListenerLock) {
               addNewTab();
             }
@@ -87,7 +83,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       // Add To Right Click Menu
       callbacks.registerContextMenuFactory(BurpExtender.this);
       // Add response store
-      //callbacks.registerHttpListener(responseStore);
       //Save State
       callbacks.registerExtensionStateListener(
           () -> callbacks.saveExtensionSetting(getTabCaption(), exportSave())
@@ -115,7 +110,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       AutoRepeaterJson.addProperty("tabName", autoRepeaterTabHandle.tabName.getText());
       BurpExtenderJson.add(AutoRepeaterJson);
     }
-    //return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
     return BurpExtenderJson.toString();
   }
 
@@ -132,7 +126,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         BurpExtenderJson.add(AutoRepeaterJson);
       }
     }
-    //return new String(Base64.getEncoder().encode(BurpExtenderJson.toString().getBytes()));
     return BurpExtenderJson.toString();
   }
 
@@ -221,7 +214,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       }
       JMenu autoRepeaterJMenu = new JMenu("AutoRepeater");
       JMenuItem toggleSettingsVisibility = new JMenuItem("Hide Settings Panel");
-      toggleSettingsVisibility.addActionListener( c -> {
+      toggleSettingsVisibility.addActionListener(c -> {
         if (toggleSettingsVisibility.getText().equals("Hide Settings Panel")) {
           showSettingsPanel = false;
           toggleSettingsVisibility.setText("Show Settings Panel");
@@ -235,7 +228,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       });
       // Add the AutoRepeater menu item two from the end.
       autoRepeaterJMenu.add(toggleSettingsVisibility);
-      burpJMenuBar.add(autoRepeaterJMenu, burpJMenuBar.getMenuCount()-2);
+      burpJMenuBar.add(autoRepeaterJMenu, burpJMenuBar.getMenuCount() - 2);
     }
   }
 
@@ -259,21 +252,19 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   public void processHttpMessage(
       int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
     for (AutoRepeater autoRepeater : autoRepeaters) {
-      //ExecutorService executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(15));
       executor.submit(
           () -> autoRepeater.modifyAndSendRequestAndLog(
               toolFlag,
               messageIsRequest,
               messageInfo,
-             false)
+              false)
       );
-      //autoRepeater.modifyAndSendRequestAndLog(toolFlag, messageIsRequest, messageInfo, false);
     }
   }
 
   public static void closeAllTabs() {
     tabChangeListenerLock = true;
-    int tabCount = mainTabbedPane.getTabCount()-1;
+    int tabCount = mainTabbedPane.getTabCount() - 1;
     for (int i = 0; i < tabCount; i++) {
       if (mainTabbedPane.getTabComponentAt(0).getClass().equals(AutoRepeaterTabHandle.class)) {
         try {
@@ -319,25 +310,25 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       // Fix tabname redraw lag.
       JPanel parent = this;
       tabName.getDocument().addDocumentListener(
-        new DocumentListener() {
-          @Override
-          public void insertUpdate(DocumentEvent e) {
-            tabName.repaint();
-            parent.validate();
-          }
+          new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+              tabName.repaint();
+              parent.validate();
+            }
 
-          @Override
-          public void removeUpdate(DocumentEvent e) {
-            tabName.repaint();
-            parent.validate();
-          }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+              tabName.repaint();
+              parent.validate();
+            }
 
-          @Override
-          public void changedUpdate(DocumentEvent e) {
-            tabName.repaint();
-            parent.validate();
-          }
-      });
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+              tabName.repaint();
+              parent.validate();
+            }
+          });
 
       tabName.addMouseListener(new MouseAdapter() {
         @Override
@@ -436,7 +427,11 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
           }
           executor.submit(() -> {
             for (AutoRepeater autoRepeater : autoRepeaters) {
-              autoRepeater.modifyAndSendRequestAndLog(toolFlag, true, tempRequestResponse, true);
+              autoRepeater.modifyAndSendRequestAndLog(
+                toolFlag,
+                true,
+                tempRequestResponse,
+                true);
             }
           });
         }
