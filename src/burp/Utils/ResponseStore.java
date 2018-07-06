@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 // This will be its own HTTPListener to keep track of all requests, not just the one's AutoRepeater sends
 // The Data store should be something along the lines of a Map of some storage object which holds the timestamp + RequestResponse
 // and the key being the domain. It might make sense to use the full path instead of just the URL.
+// TODO: Move this idea into a new plugin.
 public class ResponseStore implements IHttpListener {
 
   // Container class for the response body + time it was received

@@ -4,7 +4,6 @@ package burp;
  * Created by j on 8/7/17.
  */
 
-import burp.Utils.ResponseStore;
 import burp.Utils.Utils;
 import com.google.gson.*;
 
