@@ -7,7 +7,6 @@ package burp;
 import burp.Utils.Utils;
 import com.google.gson.*;
 
-import com.google.j2objc.annotations.AutoreleasePool;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -97,6 +96,10 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       parentTabbedPane = (JTabbedPane) getUiComponent().getParent();
       addMenuItem();
     });
+  }
+
+  public static JTabbedPane getParentTabbedPane() {
+    return parentTabbedPane;
   }
 
   public static String exportSave() {

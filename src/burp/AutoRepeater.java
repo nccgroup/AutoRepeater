@@ -1,7 +1,7 @@
 package burp;
 
 import burp.Conditions.Condition;
-import burp.Conditions.ConditionTableModel;
+import burp.Conditions.Conditions;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
 import burp.Logs.LogManager;
@@ -26,14 +26,20 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
 public class AutoRepeater implements IMessageEditorController {
+
+  // UI Component Dimensions
+  public static final Dimension dialogDimension = new Dimension(400, 140);
+  public static final Dimension comboBoxDimension = new Dimension(250, 20);
+  public static final Dimension textFieldDimension = new Dimension(250, 25);
+  public static final Dimension buttonDimension = new Dimension(75, 20);
+  public static final Dimension buttonPanelDimension = new Dimension(75, 60) ;
+  public static final Dimension tableDimension = new Dimension(200, 40);
 
   private IBurpExtenderCallbacks callbacks;
   private IExtensionHelpers helpers;
@@ -93,7 +99,6 @@ public class AutoRepeater implements IMessageEditorController {
 
   // List of log entries for LogTable
   private LogTableModel logTableModel;
-
   private LogManager logManager;
 
   // The current item selected in the log table
@@ -103,11 +108,6 @@ public class AutoRepeater implements IMessageEditorController {
   // The tabbed pane that holds the configuration options
   private JPanel configurationPane;
   private JTabbedPane configurationTabbedPane;
-
-  // Panels that hold configuration options
-  private JPanel replacementsPanel;
-  private JPanel globalReplacementsPanel;
-  private JPanel conditionsPanel;
 
   // The button that indicates weather Auto Repater is on or not.
   private JToggleButton activatedButton;
@@ -129,14 +129,6 @@ public class AutoRepeater implements IMessageEditorController {
   private JButton editReplacementButton;
   private JButton deleteReplacementButton;
 
-  // Conditions UI
-  private JScrollPane conditionScrollPane;
-  private JTable conditionTable;
-  private JButton addConditionButton;
-  private JPanel conditionsButtonPanel;
-  private JButton editConditionButton;
-  private JButton deleteConditionButton;
-
   // Add Global Replacement Dialog UI
   private JPanel replacementPanel;
 
@@ -156,23 +148,14 @@ public class AutoRepeater implements IMessageEditorController {
 
   private ReplacementTableModel globalReplacementTableModel;
   private ReplacementTableModel replacementTableModel;
-  private ConditionTableModel conditionTableModel;
-  private JPanel conditionPanel;
 
-  private JComboBox<String> booleanOperatorComboBox;
-  private JComboBox<String> matchTypeComboBox;
-  private JComboBox<String> matchRelationshipComboBox;
-  private JTextField matchConditionTextField;
-
-  private JLabel booleanOperatorLabel;
-  private JLabel matchTypeLabel;
-  private JLabel matchRelationshipLabel;
-  private JLabel matchConditionLabel;
+  private Conditions conditions;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
     helpers = callbacks.getHelpers();
     gson = BurpExtender.getGson();
+    conditions = new Conditions();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
@@ -182,6 +165,7 @@ public class AutoRepeater implements IMessageEditorController {
     this.callbacks = BurpExtender.getCallbacks();
     helpers = callbacks.getHelpers();
     gson = BurpExtender.getGson();
+    conditions = new Conditions();
     createUI();
     if (configurationJson.get("isActivated").getAsBoolean()) {
       activatedButton.setSelected(true);
@@ -201,7 +185,7 @@ public class AutoRepeater implements IMessageEditorController {
 
     if (configurationJson.get("conditions") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("conditions")) {
-        conditionTableModel.addCondition(gson.fromJson(element, Condition.class));
+        conditions.getConditionTableModel().addCondition(gson.fromJson(element, Condition.class));
       }
     }
   }
@@ -212,7 +196,7 @@ public class AutoRepeater implements IMessageEditorController {
     JsonArray baseReplacementsArray = new JsonArray();
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
-    for (Condition c : conditionTableModel.getConditions()) {
+    for (Condition c : conditions.getConditionTableModel().getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
     for (Replacement r : globalReplacementTableModel.getReplacements()) {
@@ -234,13 +218,6 @@ public class AutoRepeater implements IMessageEditorController {
     replacementReplaceTextField.setText("");
     replacementCommentTextField.setText("");
     replacementIsRegexCheckBox.setSelected(false);
-  }
-
-  private void resetConditionDialog() {
-    booleanOperatorComboBox.setSelectedIndex(0);
-    matchTypeComboBox.setSelectedIndex(0);
-    matchRelationshipComboBox.setSelectedIndex(0);
-    matchConditionTextField.setText("");
   }
 
   public JSplitPane getUI() {
@@ -271,62 +248,6 @@ public class AutoRepeater implements IMessageEditorController {
     activatedButton.setPreferredSize(activatedDimension);
     activatedButton.setMaximumSize(activatedDimension);
     activatedButton.setMinimumSize(activatedDimension);
-
-    Dimension dialogDimension = new Dimension(400, 140);
-    Dimension comboBoxDimension = new Dimension(250, 20);
-    Dimension textFieldDimension = new Dimension(250, 25);
-    //Condition Dialog
-    c = new GridBagConstraints();
-    conditionPanel = new JPanel();
-    conditionPanel.setLayout(new GridBagLayout());
-    conditionPanel.setPreferredSize(dialogDimension);
-
-    booleanOperatorComboBox = new JComboBox<>(Condition.BOOLEAN_OPERATOR_OPTIONS);
-    matchTypeComboBox = new JComboBox<>(Condition.MATCH_TYPE_OPTIONS);
-    matchRelationshipComboBox = new JComboBox<>(Condition.getUIMatchRelationshipOptions(
-        Condition.BOOLEAN_OPERATOR_OPTIONS[0]));
-    matchConditionTextField = new JTextField();
-
-    booleanOperatorComboBox.setPreferredSize(comboBoxDimension);
-    matchTypeComboBox.setPreferredSize(comboBoxDimension);
-    matchRelationshipComboBox.setPreferredSize(comboBoxDimension);
-    matchConditionTextField.setPreferredSize(textFieldDimension);
-
-    matchTypeComboBox.addActionListener(e -> {
-      matchRelationshipComboBox
-          .setModel(new DefaultComboBoxModel<>(Condition.getUIMatchRelationshipOptions(
-              (String) matchTypeComboBox.getSelectedItem())));
-      matchConditionTextField.setEnabled(Condition.matchConditionIsEditable(
-          (String) matchTypeComboBox.getSelectedItem()));
-    });
-
-    booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    matchTypeLabel = new JLabel("Match Type:");
-    matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchConditionLabel = new JLabel("Match Condition");
-
-    c.gridx = 0;
-    c.gridy = 0;
-    c.anchor = GridBagConstraints.WEST;
-    conditionPanel.add(booleanOperatorLabel, c);
-    c.gridy = 1;
-    conditionPanel.add(matchTypeLabel, c);
-    c.gridy = 2;
-    conditionPanel.add(matchRelationshipLabel, c);
-    c.gridy = 3;
-    conditionPanel.add(matchConditionLabel, c);
-
-    c.anchor = GridBagConstraints.EAST;
-    c.fill = GridBagConstraints.HORIZONTAL;
-    c.gridx = 1;
-    c.gridy = 0;
-    conditionPanel.add(booleanOperatorComboBox, c);
-    c.gridy = 1;
-    conditionPanel.add(matchTypeComboBox, c);
-    c.gridy = 2;
-    conditionPanel.add(matchRelationshipComboBox, c);
-    c.gridy = 3;
-    conditionPanel.add(matchConditionTextField, c);
 
     // GlobalReplacement Buttons
     // Populate Add Global Replacements Dialog
@@ -388,7 +309,6 @@ public class AutoRepeater implements IMessageEditorController {
     replacementPanel.add(replacementIsRegexCheckBox, c);
 
     // Initialize addGlobalReplacementButton
-    Dimension buttonDimension = new Dimension(75, 20);
     addGlobalReplacementButton = new JButton("Add");
     addGlobalReplacementButton.setPreferredSize(buttonDimension);
     addGlobalReplacementButton.setMinimumSize(buttonDimension);
@@ -572,91 +492,6 @@ public class AutoRepeater implements IMessageEditorController {
     replacementsButtonPanel.add(editReplacementButton, c);
     replacementsButtonPanel.add(deleteReplacementButton, c);
 
-    // Condition Buttons
-    addConditionButton = new JButton("Add");
-    addConditionButton.setPreferredSize(buttonDimension);
-    addConditionButton.setMinimumSize(buttonDimension);
-    addConditionButton.setMaximumSize(buttonDimension);
-
-    addConditionButton.addActionListener(e -> {
-      int result = JOptionPane.showConfirmDialog(mainSplitPane,
-          conditionPanel,
-          "Add Condition",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Condition newCondition = new Condition(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchConditionTextField.getText()
-        );
-        conditionTableModel.addCondition(newCondition);
-        conditionTableModel.fireTableDataChanged();
-      }
-      resetConditionDialog();
-    });
-
-    editConditionButton = new JButton("Edit");
-    editConditionButton.setPreferredSize(buttonDimension);
-    editConditionButton.setMinimumSize(buttonDimension);
-    editConditionButton.setMaximumSize(buttonDimension);
-
-    editConditionButton.addActionListener(e -> {
-      int selectedRow = conditionTable.getSelectedRow();
-      Condition tempCondition = conditionTableModel.getCondition(selectedRow);
-
-      booleanOperatorComboBox.setSelectedItem(tempCondition.getBooleanOperator());
-      matchTypeComboBox.setSelectedItem(tempCondition.getMatchType());
-      matchRelationshipComboBox.setSelectedItem(tempCondition.getMatchRelationship());
-      matchConditionTextField.setText(tempCondition.getMatchCondition());
-
-      int result = JOptionPane.showConfirmDialog(mainSplitPane,
-          conditionPanel,
-          "Edit Condition",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Condition newCondition = new Condition(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchConditionTextField.getText()
-        );
-        newCondition.setEnabled(tempCondition.isEnabled());
-
-        conditionTableModel.updateCondition(selectedRow, newCondition);
-        conditionTableModel.fireTableDataChanged();
-      }
-      resetConditionDialog();
-    });
-
-    deleteConditionButton = new JButton("Remove");
-    deleteConditionButton.setPreferredSize(buttonDimension);
-    deleteConditionButton.setMinimumSize(buttonDimension);
-    deleteConditionButton.setMaximumSize(buttonDimension);
-
-    deleteConditionButton.addActionListener(e -> {
-      int selectedRow = conditionTable.getSelectedRow();
-      conditionTableModel.deleteCondition(selectedRow);
-      conditionTableModel.fireTableDataChanged();
-    });
-
-    conditionsButtonPanel = new JPanel();
-    conditionsButtonPanel.setLayout(new GridBagLayout());
-    conditionsButtonPanel.setPreferredSize(new Dimension(75, 60));
-    conditionsButtonPanel.setMaximumSize(new Dimension(75, 60));
-    conditionsButtonPanel.setPreferredSize(new Dimension(75, 60));
-
-    c = new GridBagConstraints();
-    c.anchor = GridBagConstraints.FIRST_LINE_END;
-    c.gridx = 0;
-    c.weightx = 1;
-
-    conditionsButtonPanel.add(addConditionButton, c);
-    conditionsButtonPanel.add(editConditionButton, c);
-    conditionsButtonPanel.add(deleteConditionButton, c);
-
     // Global Replacement Table
     Dimension globalReplacementTableDimension = new Dimension(300, 40);
     globalReplacementTableModel = new ReplacementTableModel();
@@ -703,28 +538,6 @@ public class AutoRepeater implements IMessageEditorController {
     replacementsPanel.add(replacementScrollPane, c);
 
     //Condition Table
-    Dimension conditionTableDimension = new Dimension(200, 40);
-    conditionTableModel = new ConditionTableModel();
-    conditionTable = new JTable(conditionTableModel);
-    conditionScrollPane = new JScrollPane(conditionTable);
-
-    // Panel containing condition options
-    JPanel conditionsPanel;
-    conditionsPanel = new JPanel();
-    conditionsPanel.setLayout(new GridBagLayout());
-
-    c = new GridBagConstraints();
-    c.ipady = 0;
-    c.anchor = GridBagConstraints.PAGE_START;
-    c.gridx = 0;
-
-    conditionsPanel.add(conditionsButtonPanel, c);
-    c.fill = GridBagConstraints.BOTH;
-    c.weightx = 1;
-    c.weighty = 1;
-    c.gridx = 1;
-    conditionsPanel.add(conditionScrollPane, c);
-
     //exportPanel = createExportPanel();
 
     configurationPane = new JPanel();
@@ -744,7 +557,7 @@ public class AutoRepeater implements IMessageEditorController {
     configurationPane.add(configurationTabbedPane, c);
     configurationTabbedPane.addTab("Base Replacements", globalReplacementsPanel);
     configurationTabbedPane.addTab("Replacements", replacementsPanel);
-    configurationTabbedPane.addTab("Conditions", conditionsPanel);
+    configurationTabbedPane.addTab("Conditions", conditions.getUI());
     //configurationTabbedPane.addTab("Export", exportPanel);
     configurationTabbedPane.addTab("Export", createExportPanel());
     configurationTabbedPane.setSelectedIndex(1);
@@ -1202,14 +1015,14 @@ public class AutoRepeater implements IMessageEditorController {
   }
 
   private void setDefaultState() {
-    conditionTableModel.addCondition(new Condition(
+    conditions.getConditionTableModel().addCondition(new Condition(
         "",
         "Sent From Tool",
         "Burp",
         ""
     ));
 
-    conditionTableModel.addCondition(new Condition(
+    conditions.getConditionTableModel().addCondition(new Condition(
         "Or",
         "Request",
         "Contains Parameters",
@@ -1217,7 +1030,7 @@ public class AutoRepeater implements IMessageEditorController {
         false
     ));
 
-    conditionTableModel.addCondition(new Condition(
+    conditions.getConditionTableModel().addCondition(new Condition(
         "Or",
         "HTTP Method",
         "Does Not Match",
@@ -1225,7 +1038,7 @@ public class AutoRepeater implements IMessageEditorController {
         false
     ));
 
-    conditionTableModel.addCondition(new Condition(
+    conditions.getConditionTableModel().addCondition(new Condition(
         "And",
         "URL",
         "Is In Scope",
@@ -1247,17 +1060,17 @@ public class AutoRepeater implements IMessageEditorController {
         && activatedButton.isSelected()
         && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER)) {
       boolean meetsConditions = false;
-      if (conditionTableModel.getConditions().size() == 0) {
+      if (conditions.getConditionTableModel().getConditions().size() == 0) {
         meetsConditions = true;
       } else {
-        if (conditionTableModel.getConditions()
+        if (conditions.getConditionTableModel().getConditions()
             .stream()
             .filter(Condition::isEnabled)
             .filter(c -> c.getBooleanOperator().equals("Or"))
             .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
           meetsConditions = true;
         }
-        if (conditionTableModel.getConditions()
+        if (conditions.getConditionTableModel().getConditions()
             .stream()
             .filter(Condition::isEnabled)
             .filter(

@@ -7,6 +7,24 @@ package burp.Filter;
 // Each filter will be a set of and/or checks based on conditions
 
 
-public class Filter {
+import burp.Conditions.Condition;
 
+public class Filter extends Condition {
+
+  public Filter(
+      String booleanOperator,
+      String matchType,
+      String matchRelationship,
+      String matchCondition) {
+    super(booleanOperator, matchType, matchRelationship, matchCondition);
+  }
+
+  public Filter(
+      String booleanOperator,
+      String matchType,
+      String matchRelationship,
+      String matchCondition,
+      boolean isEnabled) {
+    super(booleanOperator, matchType, matchRelationship, matchCondition, isEnabled);
+  }
 }
