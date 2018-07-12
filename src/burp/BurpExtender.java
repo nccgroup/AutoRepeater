@@ -390,7 +390,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
   }
 
-
   public static IBurpExtenderCallbacks getCallbacks() {
     return callbacks;
   }
