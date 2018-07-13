@@ -165,7 +165,7 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
       int option = JOptionPane.showOptionDialog(rootPane, exportLogsPanel,
           "Export Logs", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
-      if (option == 2) {
+      if (option == 1) {
         return;
       }
 
