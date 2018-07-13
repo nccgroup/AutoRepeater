@@ -115,6 +115,8 @@ public class Condition {
         return new String[]{"Matches", "Does Not Match"};
       case "String In Response":
         return new String[]{"Matches", "Does Not Match"};
+      case "Mime Type":
+        return new String[]{"Is Text", "Is Not Text", "Is Media", "Is Not Media"};
       default:
         throw new IllegalStateException("getMatchRelationshipOptions() not defined for "+inputString);
     }

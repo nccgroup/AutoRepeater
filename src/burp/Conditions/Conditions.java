@@ -2,6 +2,7 @@ package burp.Conditions;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
+import burp.IHttpRequestResponse;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -51,6 +52,30 @@ public class Conditions {
     matchTypeComboBox.setSelectedIndex(0);
     matchRelationshipComboBox.setSelectedIndex(0);
     matchConditionTextField.setText("");
+  }
+
+  public boolean checkConditions(int toolFlag, IHttpRequestResponse messageInfo) {
+    boolean meetsConditions = false;
+    if (conditionTableModel.getConditions().size() == 0) {
+      meetsConditions = true;
+    } else {
+      if (conditionTableModel.getConditions()
+          .stream()
+          .filter(Condition::isEnabled)
+          .filter(c -> c.getBooleanOperator().equals("Or"))
+          .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+        meetsConditions = true;
+      }
+      if (conditionTableModel.getConditions()
+          .stream()
+          .filter(Condition::isEnabled)
+          .filter(
+              c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
+          .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+        meetsConditions = true;
+      }
+    }
+    return meetsConditions;
   }
 
   private void createUI() {

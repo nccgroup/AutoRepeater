@@ -30,6 +30,8 @@ public class LogEntry {
   private int originalRequestHashCode;
   private int modifiedRequestHashCode;
 
+  private int toolFlag;
+
   private long requestSentTime;
 
   public long getRequestResponseId() {
@@ -173,6 +175,7 @@ public class LogEntry {
   // Mod. Length
 
   public LogEntry(long requestResponseId,
+      int toolFlag,
       IHttpRequestResponsePersisted originalRequestResponse,
       IHttpRequestResponsePersisted modifiedRequestResponse) {
 
@@ -210,7 +213,17 @@ public class LogEntry {
     this.originalRequestHashCode = Arrays.hashCode(originalRequestResponse.getRequest());
     this.modifiedRequestHashCode = Arrays.hashCode(modifiedRequestResponse.getRequest());
 
+    this.toolFlag = toolFlag;
+
     this.requestSentTime = System.currentTimeMillis();
+  }
+
+  public int getToolFlag() {
+    return toolFlag;
+  }
+
+  public void setToolFlag(int toolFlag) {
+    this.toolFlag = toolFlag;
   }
 }
 
