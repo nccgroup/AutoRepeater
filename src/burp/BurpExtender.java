@@ -253,11 +253,10 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
     for (AutoRepeater autoRepeater : autoRepeaters) {
       executor.submit(
-          () -> autoRepeater.modifyAndSendRequestAndLog(
-              toolFlag,
-              messageIsRequest,
-              messageInfo,
-              false)
+        () -> autoRepeater.modifyAndSendRequestAndLog(
+          toolFlag,
+          messageIsRequest,
+          messageInfo)
       );
     }
   }
@@ -429,8 +428,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
               autoRepeater.modifyAndSendRequestAndLog(
                 toolFlag,
                 true,
-                tempRequestResponse,
-                true);
+                tempRequestResponse);
             }
           });
         }

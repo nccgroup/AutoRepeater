@@ -715,15 +715,14 @@ public class AutoRepeater implements IMessageEditorController {
   public void modifyAndSendRequestAndLog(
       int toolFlag,
       boolean messageIsRequest,
-      IHttpRequestResponse messageInfo,
-      boolean isSentToAutoRepeater) {
+      IHttpRequestResponse messageInfo ) {
 
     //Although this isn't optimal, i'm generating the modified requests when a response is received.
     //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
     //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
-    if (((!messageIsRequest || isSentToAutoRepeater)
+    if (!messageIsRequest
         && activatedButton.isSelected()
-        && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER)) {
+        && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
       boolean meetsConditions = false;
       if (conditionsTableModel.getConditions().size() == 0) {
         meetsConditions = true;
@@ -732,7 +731,7 @@ public class AutoRepeater implements IMessageEditorController {
             .stream()
             .filter(Condition::isEnabled)
             .filter(c -> c.getBooleanOperator().equals("Or"))
-            .anyMatch(c -> c.checkRequestCondition(toolFlag, messageInfo))) {
+            .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
           meetsConditions = true;
         }
         if (conditionsTableModel.getConditions()
@@ -740,7 +739,7 @@ public class AutoRepeater implements IMessageEditorController {
             .filter(Condition::isEnabled)
             .filter(
                 c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
-            .allMatch(c -> c.checkRequestCondition(toolFlag, messageInfo))) {
+            .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
           meetsConditions = true;
         }
       }

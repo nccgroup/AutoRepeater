@@ -4,6 +4,7 @@ import burp.BurpExtender;
 import burp.IHttpRequestResponse;
 import burp.IParameter;
 import burp.IRequestInfo;
+import burp.IResponseInfo;
 import com.google.common.io.Files;
 
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class Condition {
       "Cookie Name",
       "Cookie Value",
       "Any Header",
-      "Body",
+      "Request Body",
       "Param Name",
       "Param Value",
       "Sent From Tool",
@@ -88,7 +89,7 @@ public class Condition {
         return new String[]{"Matches", "Does Not Match"};
       case "Any Header":
         return new String[]{"Matches", "Does Not Match"};
-      case "Body":
+      case "Request Body":
         return new String[]{"Matches", "Does Not Match"};
       case "Param Name":
         return new String[]{"Matches", "Does Not Match"};
@@ -132,7 +133,7 @@ public class Condition {
         return true;
       case "Any Header":
         return true;
-      case "Body":
+      case "Request Body":
         return true;
       case "Param Name":
         return true;
@@ -147,155 +148,201 @@ public class Condition {
     }
   }
 
-  public boolean checkRequestCondition(int toolFlag, IHttpRequestResponse messageInfo) {
+  private boolean checkDomainName(IHttpRequestResponse messageInfo) {
+    switch (this.matchRelationship) {
+      case "Matches":
+        return messageInfo.getHttpService().getHost().equals(this.matchCondition);
+      default:
+        return !messageInfo.getHttpService().getHost().equals(this.matchCondition);
+    }
+  }
+
+  private boolean checkProtocol(IHttpRequestResponse messageInfo) {
+    String protocol = messageInfo.getHttpService().getProtocol();
+    switch (this.matchRelationship) {
+      case "Is HTTP":
+        return protocol.equals("http");
+      default:
+        return !protocol.equals("http");
+    }
+  }
+
+  private boolean checkHttpMethod(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    switch (this.matchRelationship) {
+      case "Matches":
+        return analyzedRequest.getMethod().matches(this.matchCondition);
+      default:
+        return !analyzedRequest.getMethod().matches(this.matchCondition);
+    }
+  }
+
+  private boolean checkUrl(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    switch (this.matchRelationship) {
+      case "Is In Scope":
+        return BurpExtender.getCallbacks().isInScope(analyzedRequest.getUrl());
+      case "Matches":
+        return analyzedRequest.getUrl().toString().matches(this.matchCondition);
+      default:
+        return !analyzedRequest.getUrl().toString().matches(this.matchCondition);
+    }
+  }
+
+  private boolean checkFileExtension(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    String fileExtension = Files.getFileExtension(analyzedRequest.getUrl().toString());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return fileExtension.matches(this.matchCondition);
+      default:
+        return !fileExtension.matches(this.matchCondition);
+    }
+  }
+
+  private boolean checkRequest(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    long parameterCount = analyzedRequest.getParameters()
+        .stream()
+        .filter(
+            p -> p.getType() == IParameter.PARAM_URL || p.getType() == IParameter.PARAM_BODY)
+        .count();
+    switch (this.matchRelationship) {
+      case "Contains Parameters":
+        return parameterCount > 0;
+      default:
+        return !(parameterCount > 0);
+    }
+  }
+
+  private boolean checkCookieName(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    List<IParameter> cookiesByName = analyzedRequest.getParameters()
+        .stream()
+        .filter(p -> p.getType() == IParameter.PARAM_COOKIE)
+        .filter(p -> p.getName().matches(this.matchCondition))
+        .collect(Collectors.toList());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return cookiesByName.size() > 0;
+      default:
+        return !(cookiesByName.size() > 0);
+    }
+  }
+
+  private boolean checkCookieValue(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    List<IParameter> cookiesByName = analyzedRequest.getParameters()
+        .stream()
+        .filter(p -> p.getType() == IParameter.PARAM_COOKIE)
+        .filter(p -> p.getName().matches(this.matchCondition))
+        .collect(Collectors.toList());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return cookiesByName.size() > 0;
+      default:
+        return !(cookiesByName.size() > 0);
+    }
+  }
+
+  private boolean checkAnyHeader(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    List<String> matchingHeaders = analyzedRequest.getHeaders()
+        .stream()
+        .filter(h -> h.matches(this.matchCondition))
+        .collect(Collectors.toList());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return matchingHeaders.size() > 0;
+      default:
+        return !(matchingHeaders.size() > 0);
+    }
+  }
+
+  private boolean checkRequestBody(IHttpRequestResponse messageInfo) {
     IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
     byte[] request = messageInfo.getRequest();
-    switch (this.matchType) {
-      case "Domain Name":
-        switch (this.matchRelationship) {
-          case "Matches":
-            return messageInfo.getHttpService().getHost().equals(this.matchCondition);
-          default:
-            return !messageInfo.getHttpService().getHost().equals(this.matchCondition);
-        }
-      case "IP Address":
-        //TKTKTK Use google guava for this
-        String ipAddress = messageInfo.getHttpService().getHost();
-        return true;
-      case "Protocol":
-        String protocol = messageInfo.getHttpService().getProtocol();
-        switch (this.matchRelationship) {
-          case "http":
-            return protocol.equals("http");
-          default:
-            return !protocol.equals("http");
-        }
-      case "HTTP Method":
-        switch (this.matchRelationship) {
-          case "Matches":
-            return analyzedRequest.getMethod().matches(this.matchCondition);
-          default:
-            return !analyzedRequest.getMethod().matches(this.matchCondition);
-        }
-      case "URL":
-        switch (this.matchRelationship) {
-          case "Is In Scope":
-            return BurpExtender.getCallbacks().isInScope(analyzedRequest.getUrl());
-          case "Matches":
-            return analyzedRequest.getUrl().toString().matches(this.matchCondition);
-          default:
-            return !analyzedRequest.getUrl().toString().matches(this.matchCondition);
-        }
-      case "File Extension":
-        String fileExtension = Files.getFileExtension(analyzedRequest.getUrl().toString());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return fileExtension.matches(this.matchCondition);
-          default:
-            return !fileExtension.matches(this.matchCondition);
-        }
-      case "Request":
-        long parameterCount = analyzedRequest.getParameters()
-            .stream()
-            .filter(
-                p -> p.getType() == IParameter.PARAM_URL || p.getType() == IParameter.PARAM_BODY)
-            .count();
-        switch (this.matchRelationship) {
-          case "Contains Parameters":
-            return parameterCount > 0;
-          default:
-            return !(parameterCount > 0);
-        }
-      case "Cookie Name":
-        List<IParameter> cookiesByName = analyzedRequest.getParameters()
-            .stream()
-            .filter(p -> p.getType() == IParameter.PARAM_COOKIE)
-            .filter(p -> p.getName().matches(this.matchCondition))
-            .collect(Collectors.toList());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return cookiesByName.size() > 0;
-          default:
-            return !(cookiesByName.size() > 0);
-        }
-      case "Cookie Value":
-        List<IParameter> cookiesByValue = analyzedRequest.getParameters()
-            .stream()
-            .filter(p -> p.getType() == IParameter.PARAM_COOKIE)
-            .filter(p -> p.getValue().matches(this.matchCondition))
-            .collect(Collectors.toList());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return cookiesByValue.size() > 0;
-          default:
-            return !(cookiesByValue.size() > 0);
-        }
-      case "Any Header":
-        List<String> matchingHeaders = analyzedRequest.getHeaders()
-            .stream()
-            .filter(h -> h.matches(this.matchCondition))
-            .collect(Collectors.toList());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return matchingHeaders.size() > 0;
-          default:
-            return !(matchingHeaders.size() > 0);
-        }
-      case "Body":
-        String bodyString = new String(
-            Arrays.copyOfRange(request, analyzedRequest.getBodyOffset(), request.length));
-        switch (this.matchRelationship) {
-          case ("Matches"):
-            return bodyString.matches(this.matchCondition);
-          default:
-            return !bodyString.matches(this.matchCondition);
-        }
-      case "Param Name":
-        List<IParameter> parametersByName = analyzedRequest.getParameters()
-            .stream()
-            .filter(p -> p.getName().matches(this.matchCondition))
-            .collect(Collectors.toList());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return parametersByName.size() > 0;
-          default:
-            return !(parametersByName.size() > 0);
-        }
-      case "Param Value":
-        List<IParameter> parametersByValue = analyzedRequest.getParameters()
-            .stream()
-            .filter(p -> p.getValue().matches(this.matchCondition))
-            .collect(Collectors.toList());
-        switch (this.matchRelationship) {
-          case "Matches":
-            return parametersByValue.size() > 0;
-          default:
-            return !(parametersByValue.size() > 0);
-        }
-      case "Sent From Tool":
-        switch (this.matchRelationship) {
-          case "Burp":
-            return toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER &&
-                    toolFlag != BurpExtender.getCallbacks().TOOL_SCANNER;
-          case "Proxy":
-            return toolFlag == BurpExtender.getCallbacks().TOOL_PROXY;
-          case "Repeater":
-            return toolFlag == BurpExtender.getCallbacks().TOOL_REPEATER;
-          case "Spider":
-            return toolFlag == BurpExtender.getCallbacks().TOOL_SPIDER;
-          case "Intruder":
-            return toolFlag == BurpExtender.getCallbacks().TOOL_INTRUDER;
-          default:
-            return toolFlag == BurpExtender.getCallbacks().TOOL_SCANNER;
-        }
-      case "Listener Port":
-        if (this.matchType.equals("Matches")) {
-          return messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition);
-        } else {
-          return !(messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition));
-        }
+    String bodyString = new String(
+        Arrays.copyOfRange(request, analyzedRequest.getBodyOffset(), request.length));
+    switch (this.matchRelationship) {
+      case ("Matches"):
+        return bodyString.matches(this.matchCondition);
       default:
-        throw new IllegalStateException("checkRequestCondition() not defined for the input.");
+        return !bodyString.matches(this.matchCondition);
+    }
+  }
+
+  private boolean checkParamName(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    List<IParameter> parametersByName = analyzedRequest.getParameters()
+        .stream()
+        .filter(p -> p.getName().matches(this.matchCondition))
+        .collect(Collectors.toList());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return parametersByName.size() > 0;
+      default:
+        return !(parametersByName.size() > 0);
+    }
+  }
+
+  private boolean checkParamValue(IHttpRequestResponse messageInfo) {
+    IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
+    List<IParameter> parametersByValue = analyzedRequest.getParameters()
+        .stream()
+        .filter(p -> p.getValue().matches(this.matchCondition))
+        .collect(Collectors.toList());
+    switch (this.matchRelationship) {
+      case "Matches":
+        return parametersByValue.size() > 0;
+      default:
+        return !(parametersByValue.size() > 0);
+    }
+  }
+
+  private boolean checkSentFromTool(int toolFlag) {
+    switch (this.matchRelationship) {
+      case "Burp":
+        return toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER &&
+            toolFlag != BurpExtender.getCallbacks().TOOL_SCANNER;
+      case "Proxy":
+        return toolFlag == BurpExtender.getCallbacks().TOOL_PROXY;
+      case "Repeater":
+        return toolFlag == BurpExtender.getCallbacks().TOOL_REPEATER;
+      case "Spider":
+        return toolFlag == BurpExtender.getCallbacks().TOOL_SPIDER;
+      case "Intruder":
+        return toolFlag == BurpExtender.getCallbacks().TOOL_INTRUDER;
+      default:
+        return toolFlag == BurpExtender.getCallbacks().TOOL_SCANNER;
+    }
+  }
+
+  private boolean checkListenerPort(IHttpRequestResponse messageInfo) {
+    if (this.matchType.equals("Matches")) {
+      return messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition);
+    } else {
+      return !(messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition));
+    }
+  }
+
+  public boolean checkCondition(int toolFlag, IHttpRequestResponse messageInfo) {
+    switch (this.matchType) {
+      case "Domain Name": return checkDomainName(messageInfo);
+      case "Protocol": return checkProtocol(messageInfo);
+      case "HTTP Method": return checkHttpMethod(messageInfo);
+      case "URL": return checkUrl(messageInfo);
+      case "File Extension": return checkFileExtension(messageInfo);
+      case "Request": return checkRequest(messageInfo);
+      case "Cookie Name": return checkCookieName(messageInfo);
+      case "Cookie Value": return checkCookieValue(messageInfo);
+      case "Any Header": return checkAnyHeader(messageInfo);
+      case "Request Body": return checkRequestBody(messageInfo);
+      case "Param Name": return checkParamName(messageInfo);
+      case "Param Value": return checkParamValue(messageInfo);
+      case "Sent From Tool": return checkSentFromTool(toolFlag);
+      case "Listener Port": return checkListenerPort(messageInfo);
+      default: throw new IllegalStateException("checkCondition() not defined for the input.");
     }
   }
 
