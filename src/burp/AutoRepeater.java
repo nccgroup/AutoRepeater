@@ -232,6 +232,18 @@ public class AutoRepeater implements IMessageEditorController {
     return mainSplitPane;
   }
 
+  public LogTable getLogTable() {
+    return logTable;
+  }
+
+  public LogTableModel getLogTableModel() {
+    return logTableModel;
+  }
+
+  public LogManager getLogManager() {
+    return logManager;
+  }
+
   private void createUI() {
     GridBagConstraints c;
     Border grayline = BorderFactory.createLineBorder(Color.GRAY);
@@ -275,8 +287,6 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
-    //configurationTabbedPane.addTab("Export", exportPanel);
-    configurationTabbedPane.addTab("Export", createExportPanel());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
@@ -492,9 +502,8 @@ public class AutoRepeater implements IMessageEditorController {
 
     // Split pane containing user interface components
     userInterfaceSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-    if (BurpExtender.showSettingsPanel()) {
-      userInterfaceSplitPane.setRightComponent(configurationPane);
-    }
+
+    userInterfaceSplitPane.setRightComponent(configurationPane);
     userInterfaceSplitPane.setLeftComponent(logTableScrollPane);
     userInterfaceSplitPane.setResizeWeight(1.0);
     mainSplitPane.setTopComponent(userInterfaceSplitPane);
@@ -546,169 +555,6 @@ public class AutoRepeater implements IMessageEditorController {
     callbacks.customizeUiComponent(logTable);
     callbacks.customizeUiComponent(logTableScrollPane);
     callbacks.customizeUiComponent(tabs);
-  }
-
-  private JScrollPane createExportPanel() {
-    final Dimension buttonDimension = new Dimension(120, 20);
-    final Dimension comboBoxDimension = new Dimension(200, 20);
-
-    final String[] EXPORT_OPTIONS = {"CSV", "JSON"};
-    final String[] EXPORT_WHICH_OPTIONS = {"All Tab Logs", "Selected Tab Logs"};
-    final String[] EXPORT_VALUE_OPTIONS = {"Log Entry", "Log Entry + Full HTTP Request"};
-    final JComboBox<String> exportTypeComboBox = new JComboBox<>(EXPORT_OPTIONS);
-    final JComboBox<String> exportWhichComboBox = new JComboBox<>(EXPORT_WHICH_OPTIONS);
-    final JComboBox<String> exportValueComboBox = new JComboBox<>(EXPORT_VALUE_OPTIONS);
-    final JButton exportButton = new JButton("Export Logs");
-    final JFileChooser exportPathChooser = new JFileChooser();
-    final JLabel exportLogsLabel = new JLabel("Export Logs");
-    //final JFileChooser importPathChooser = new JFileChooser();
-
-    // Log Exporting Related Things
-    exportButton.setPreferredSize(buttonDimension);
-    exportButton.setMaximumSize(buttonDimension);
-    exportButton.setMaximumSize(buttonDimension);
-    exportTypeComboBox.setPreferredSize(comboBoxDimension);
-    exportTypeComboBox.setMinimumSize(comboBoxDimension);
-    exportTypeComboBox.setMaximumSize(comboBoxDimension);
-    exportWhichComboBox.setPreferredSize(comboBoxDimension);
-    exportWhichComboBox.setMinimumSize(comboBoxDimension);
-    exportWhichComboBox.setMaximumSize(comboBoxDimension);
-    exportValueComboBox.setPreferredSize(comboBoxDimension);
-    exportValueComboBox.setMinimumSize(comboBoxDimension);
-    exportValueComboBox.setMaximumSize(comboBoxDimension);
-
-    JPanel exportPanel = new JPanel();
-    exportPanel.setLayout(new BoxLayout(exportPanel, BoxLayout.PAGE_AXIS));
-    exportLogsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportLogsLabel);
-    exportWhichComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportWhichComboBox);
-    exportValueComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportValueComboBox);
-    exportTypeComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportTypeComboBox);
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
-    exportButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-    buttonPanel.add(exportButton);
-    buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(buttonPanel);
-
-    exportButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        ArrayList<LogEntry> logEntries = new ArrayList<>();
-        // Collect relevant entries
-        if ((exportWhichComboBox.getSelectedItem()).equals("All Tab Logs")) {
-          logEntries = logManager.getLogTableModel().getLog();
-        } else if ((exportWhichComboBox.getSelectedItem()).equals("Selected Tab Logs")) {
-          int[] selectedRows = logTable.getSelectedRows();
-          for (int row : selectedRows) {
-            logEntries.add(logManager.getLogEntry(logTable.convertRowIndexToModel(row)));
-          }
-        }
-        //Determine if whole request should be exported or just the log contents
-        boolean exportFullHttp = !((exportValueComboBox.getSelectedItem()).equals("Log Entry"));
-
-        if ((exportTypeComboBox.getSelectedItem()).equals("CSV")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(Utils.exportLogEntriesToCsv(logEntries, exportFullHttp));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        } else if ((exportTypeComboBox.getSelectedItem()).equals("JSON")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(Utils.exportLogEntriesToJson(logEntries, exportFullHttp));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    });
-
-    JLabel exportSettingsLabel = new JLabel("Export Settings");
-    exportSettingsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    //exportPanel.add(exportLogsLabel);
-    // TODO: Add export combobox to chose this tab or all tabs
-
-    exportPanel.add(exportSettingsLabel);
-
-    final String[] EXPORT_WHICH_TAB_SETTINGS_OPTIONS = {"This Tab", "Every Tab"};
-    final JComboBox<String> exportWhichTabSettingsComboBox = new JComboBox<>(
-        EXPORT_WHICH_TAB_SETTINGS_OPTIONS);
-    exportWhichTabSettingsComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportWhichTabSettingsComboBox.setPreferredSize(comboBoxDimension);
-    exportWhichTabSettingsComboBox.setMinimumSize(comboBoxDimension);
-    exportWhichTabSettingsComboBox.setMaximumSize(comboBoxDimension);
-
-    final JButton exportSettingsButton = new JButton("Export Settings");
-    exportSettingsButton.setPreferredSize(buttonDimension);
-    exportSettingsButton.setMaximumSize(buttonDimension);
-    exportSettingsButton.setMaximumSize(buttonDimension);
-    exportSettingsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    exportSettingsButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        //ArrayList<LogEntry> logEntries = new ArrayList<>();
-        // Collect relevant entries
-        if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("This Tab")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(BurpExtender.exportSave(this));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        } else if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("Every Tab")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(BurpExtender.exportSave());
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    });
-
-    exportPanel.add(exportWhichTabSettingsComboBox);
-    exportPanel.add(exportSettingsButton);
-
-    final JLabel importSettingsLabel = new JLabel("Import Settings");
-    importSettingsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    final String[] IMPORT_REPLACE_TABS_OPTIONS = {"Do Not Replace Tabs", "Replace Tabs"};
-    final JComboBox<String> importReplaceTabsComboxBox = new JComboBox<>(
-        IMPORT_REPLACE_TABS_OPTIONS);
-    importReplaceTabsComboxBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    importReplaceTabsComboxBox.setPreferredSize(comboBoxDimension);
-    importReplaceTabsComboxBox.setMinimumSize(comboBoxDimension);
-    importReplaceTabsComboxBox.setMaximumSize(comboBoxDimension);
-
-    final JButton importButton = new JButton("Import Settings");
-    importButton.setPreferredSize(buttonDimension);
-    importButton.setMaximumSize(buttonDimension);
-    importButton.setMaximumSize(buttonDimension);
-    importButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    importButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        String fileData = Utils.readFile(file);
-        if (!fileData.equals("")) {
-          if ((importReplaceTabsComboxBox.getSelectedItem()).equals("Do Not Replace Tabs")) {
-            BurpExtender.initializeFromSave(fileData, false);
-          } else if ((importReplaceTabsComboxBox.getSelectedItem()).equals("Replace Tabs")) {
-            BurpExtender.getCallbacks().printOutput("Removing Tabs");
-            BurpExtender.initializeFromSave(fileData, true);
-          }
-        }
-      }
-    });
-    exportPanel.add(importSettingsLabel);
-    exportPanel.add(importReplaceTabsComboxBox);
-    exportPanel.add(importButton);
-    return new JScrollPane(exportPanel);
   }
 
 
