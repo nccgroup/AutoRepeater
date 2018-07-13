@@ -232,6 +232,14 @@ public class AutoRepeater implements IMessageEditorController {
     return mainSplitPane;
   }
 
+  public LogTable getLogTable() {
+    return logTable;
+  }
+
+  public LogManager getLogManager() {
+    return logManager;
+  }
+
   private void createUI() {
     GridBagConstraints c;
     Border grayline = BorderFactory.createLineBorder(Color.GRAY);
@@ -286,8 +294,6 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
-    //configurationTabbedPane.addTab("Export", exportPanel);
-    configurationTabbedPane.addTab("Export", createExportPanel());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
@@ -502,9 +508,8 @@ public class AutoRepeater implements IMessageEditorController {
 
     // Split pane containing user interface components
     userInterfaceSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-    if (BurpExtender.showSettingsPanel()) {
-      userInterfaceSplitPane.setRightComponent(configurationPane);
-    }
+
+    userInterfaceSplitPane.setRightComponent(configurationPane);
     userInterfaceSplitPane.setLeftComponent(logTableScrollPane);
     userInterfaceSplitPane.setResizeWeight(1.0);
     mainSplitPane.setTopComponent(userInterfaceSplitPane);
@@ -768,6 +773,10 @@ public class AutoRepeater implements IMessageEditorController {
         }
       }
     }
+  }
+
+  public LogTableModel getLogTableModel() {
+    return logManager.getLogTableModel();
   }
 
   public void toggleConfigurationPane(boolean visible) {
