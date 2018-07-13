@@ -234,6 +234,7 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
 
     // add menu items to the menu
     autoRepeaterJMenu.add(toggleSettingsVisibility);
+    autoRepeaterJMenu.addSeparator();
     autoRepeaterJMenu.add(showImportMenu);
     autoRepeaterJMenu.add(showExportMenu);
     autoRepeaterJMenu.add(showExportLogsMenu);
