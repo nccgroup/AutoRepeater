@@ -50,11 +50,14 @@ public class Condition {
   };
 
   public static final String[] MATCH_TYPE_OPTIONS = {
+      "URL",
+      "String In Request",
+      "String In Response",
+      "Status Code",
       "Domain Name",
       //"IP Address",
       "Protocol",
       "HTTP Method",
-      "URL",
       "File Extension",
       "Request",
       "Cookie Name",
@@ -83,6 +86,8 @@ public class Condition {
         return new String[]{"Matches", "Does Not Match"};
       case "Request":
         return new String[]{"Contains Parameters", "Does Not Contain Parameters"};
+      case "Status Code":
+        return new String[]{"Matches", "Does Not Match"};
       case "Cookie Name":
         return new String[]{"Matches", "Does Not Match"};
       case "Cookie Value":
@@ -105,6 +110,10 @@ public class Condition {
             "Scanner"
         };
       case "Listener Port":
+        return new String[]{"Matches", "Does Not Match"};
+      case "String In Request":
+        return new String[]{"Matches", "Does Not Match"};
+      case "String In Response":
         return new String[]{"Matches", "Does Not Match"};
       default:
         throw new IllegalStateException("getMatchRelationshipOptions() not defined for "+inputString);
@@ -143,8 +152,47 @@ public class Condition {
         return false;
       case "Listener Port":
         return true;
+      case "Status Code":
+        return true;
+      case "String In Request":
+        return true;
+      case "String In Response":
+        return true;
       default:
         throw new IllegalStateException("matchConditionIsEditable() not defined for input "+inputString);
+    }
+  }
+
+  private boolean checkStringInRequest(IHttpRequestResponse messageInfo) {
+    switch (this.matchRelationship) {
+      case "Matches":
+        return new String(messageInfo.getRequest()).contains(this.matchCondition);
+      default:
+        return !(new String(messageInfo.getRequest()).contains(this.matchCondition));
+    }
+  }
+
+  private boolean checkStringInResponse(IHttpRequestResponse messageInfo) {
+    switch (this.matchRelationship) {
+      case "Matches":
+        return new String(messageInfo.getResponse()).contains(this.matchCondition);
+      default:
+        return !(new String(messageInfo.getResponse()).contains(this.matchCondition));
+    }
+  }
+
+  private boolean checkStatusCode(IHttpRequestResponse messageInfo) {
+    IResponseInfo analyzedResponse = BurpExtender.getHelpers().analyzeResponse(messageInfo.getResponse());
+    try {
+      short responseCodeAsShort = Short.parseShort(this.matchCondition);
+      switch (this.matchRelationship) {
+        case "Matches":
+          return analyzedResponse.getStatusCode() == responseCodeAsShort;
+        default:
+          return !(analyzedResponse.getStatusCode() == responseCodeAsShort);
+      }
+    } catch (NumberFormatException e) {
+      return false;
     }
   }
 
@@ -342,6 +390,9 @@ public class Condition {
       case "Param Value": return checkParamValue(messageInfo);
       case "Sent From Tool": return checkSentFromTool(toolFlag);
       case "Listener Port": return checkListenerPort(messageInfo);
+      case "Status Code": return checkStatusCode(messageInfo);
+      case "String In Request": return checkStringInRequest(messageInfo);
+      case "String In Response": return checkStringInResponse(messageInfo);
       default: throw new IllegalStateException("checkCondition() not defined for the input.");
     }
   }
