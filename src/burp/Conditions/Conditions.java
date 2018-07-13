@@ -30,6 +30,7 @@ public class Conditions {
   private JComboBox<String> matchTypeComboBox;
   private JComboBox<String> matchRelationshipComboBox;
   private JTextField matchConditionTextField;
+
   private JLabel booleanOperatorLabel;
   private JLabel matchTypeLabel;
   private JLabel matchRelationshipLabel;
@@ -63,8 +64,8 @@ public class Conditions {
 
     booleanOperatorComboBox = new JComboBox<>(Condition.BOOLEAN_OPERATOR_OPTIONS);
     matchTypeComboBox = new JComboBox<>(Condition.MATCH_TYPE_OPTIONS);
-    matchRelationshipComboBox = new JComboBox<>(Condition.getUIMatchRelationshipOptions(
-        Condition.BOOLEAN_OPERATOR_OPTIONS[0]));
+    matchRelationshipComboBox = new JComboBox<>(Condition.getMatchRelationshipOptions(
+        Condition.MATCH_TYPE_OPTIONS[0]));
     matchConditionTextField = new JTextField();
 
     booleanOperatorComboBox.setPreferredSize(AutoRepeater.comboBoxDimension);
@@ -74,16 +75,16 @@ public class Conditions {
 
     matchTypeComboBox.addActionListener(e -> {
       matchRelationshipComboBox
-          .setModel(new DefaultComboBoxModel<>(Condition.getUIMatchRelationshipOptions(
+          .setModel(new DefaultComboBoxModel<>(Condition.getMatchRelationshipOptions(
               (String) matchTypeComboBox.getSelectedItem())));
       matchConditionTextField.setEnabled(Condition.matchConditionIsEditable(
           (String) matchTypeComboBox.getSelectedItem()));
     });
 
     booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    matchTypeLabel = new JLabel("Match Type:");
+    matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchConditionLabel = new JLabel("Match Condition");
+    matchConditionLabel = new JLabel("Match Condition: ");
 
     c.gridx = 0;
     c.gridy = 0;
@@ -214,4 +215,6 @@ public class Conditions {
     c.gridx = 1;
     conditionsPanel.add(conditionScrollPane, c);
   }
+
 }
+

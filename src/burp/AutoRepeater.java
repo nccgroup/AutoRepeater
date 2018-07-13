@@ -174,6 +174,39 @@ public class AutoRepeater implements IMessageEditorController {
     }
   }
 
+  private void setDefaultState() {
+    conditionsTableModel.addCondition(new Condition(
+        "",
+        "Sent From Tool",
+        "Burp",
+        ""
+    ));
+
+    conditionsTableModel.addCondition(new Condition(
+        "Or",
+        "Request",
+        "Contains Parameters",
+        "",
+        false
+    ));
+
+    conditionsTableModel.addCondition(new Condition(
+        "Or",
+        "HTTP Method",
+        "Does Not Match",
+        "(GET|POST)",
+        false
+    ));
+
+    conditionsTableModel.addCondition(new Condition(
+        "And",
+        "URL",
+        "Is In Scope",
+        "",
+        false
+    ));
+  }
+
   public JsonObject toJson() {
     JsonObject autoRepeaterJson = new JsonObject();
     autoRepeaterJson.addProperty("isActivated", activatedButton.isSelected());
@@ -678,38 +711,6 @@ public class AutoRepeater implements IMessageEditorController {
     return new JScrollPane(exportPanel);
   }
 
-  private void setDefaultState() {
-    conditionsTableModel.addCondition(new Condition(
-        "",
-        "Sent From Tool",
-        "Burp",
-        ""
-    ));
-
-    conditionsTableModel.addCondition(new Condition(
-        "Or",
-        "Request",
-        "Contains Parameters",
-        "",
-        false
-    ));
-
-    conditionsTableModel.addCondition(new Condition(
-        "Or",
-        "HTTP Method",
-        "Does Not Match",
-        "(GET|POST)",
-        false
-    ));
-
-    conditionsTableModel.addCondition(new Condition(
-        "And",
-        "URL",
-        "Is In Scope",
-        "",
-        false
-    ));
-  }
 
   public void modifyAndSendRequestAndLog(
       int toolFlag,
@@ -731,7 +732,7 @@ public class AutoRepeater implements IMessageEditorController {
             .stream()
             .filter(Condition::isEnabled)
             .filter(c -> c.getBooleanOperator().equals("Or"))
-            .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+            .anyMatch(c -> c.checkRequestCondition(toolFlag, messageInfo))) {
           meetsConditions = true;
         }
         if (conditionsTableModel.getConditions()
@@ -739,7 +740,7 @@ public class AutoRepeater implements IMessageEditorController {
             .filter(Condition::isEnabled)
             .filter(
                 c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
-            .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+            .allMatch(c -> c.checkRequestCondition(toolFlag, messageInfo))) {
           meetsConditions = true;
         }
       }

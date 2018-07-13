@@ -73,8 +73,10 @@ public class ConditionTableModel extends AbstractTableModel {
         return tempCondition.getMatchType();
       case 3:
         return tempCondition.getMatchRelationship();
-      default:
+      case 4:
         return tempCondition.getMatchCondition();
+      default:
+        throw new IllegalStateException("getValueAt not defined for "+Integer.toString(col));
     }
   }
 

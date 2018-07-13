@@ -18,6 +18,31 @@ public class Condition {
   private String matchCondition;
   private boolean isEnabled;
 
+  public Condition(
+      String booleanOperator,
+      String matchType,
+      String matchRelationship,
+      String matchCondition) {
+    setEnabled(true);
+    setBooleanOperator(booleanOperator);
+    setMatchType(matchType);
+    setMatchRelationship(matchRelationship);
+    setMatchCondition(matchCondition);
+  }
+
+  public Condition(
+      String booleanOperator,
+      String matchType,
+      String matchRelationship,
+      String matchCondition,
+      boolean isEnabled) {
+    setEnabled(isEnabled);
+    setBooleanOperator(booleanOperator);
+    setMatchType(matchType);
+    setMatchRelationship(matchRelationship);
+    setMatchCondition(matchCondition);
+  }
+
   public static final String[] BOOLEAN_OPERATOR_OPTIONS = {
       "And",
       "Or"
@@ -41,7 +66,7 @@ public class Condition {
       "Listener Port"
   };
 
-  public static String[] getUIMatchRelationshipOptions(String inputString) {
+  public static String[] getMatchRelationshipOptions(String inputString) {
     switch (inputString) {
       case "Domain Name":
         return new String[]{"Matches", "Does Not Match"};
@@ -81,7 +106,7 @@ public class Condition {
       case "Listener Port":
         return new String[]{"Matches", "Does Not Match"};
       default:
-        return new String[]{"Matches", "Does Not Match"};
+        throw new IllegalStateException("getMatchRelationshipOptions() not defined for "+inputString);
     }
   }
 
@@ -118,36 +143,11 @@ public class Condition {
       case "Listener Port":
         return true;
       default:
-        return false;
+        throw new IllegalStateException("matchConditionIsEditable() not defined for input "+inputString);
     }
   }
 
-  public Condition(
-      String booleanOperator,
-      String matchType,
-      String matchRelationship,
-      String matchCondition) {
-    this.isEnabled = true;
-    this.booleanOperator = booleanOperator;
-    this.matchType = matchType;
-    this.matchRelationship = matchRelationship;
-    this.matchCondition = matchCondition;
-  }
-
-  public Condition(
-      String booleanOperator,
-      String matchType,
-      String matchRelationship,
-      String matchCondition,
-      boolean isEnabled) {
-    this.isEnabled = isEnabled;
-    this.booleanOperator = booleanOperator;
-    this.matchType = matchType;
-    this.matchRelationship = matchRelationship;
-    this.matchCondition = matchCondition;
-  }
-
-  public boolean checkCondition(int toolFlag, IHttpRequestResponse messageInfo) {
+  public boolean checkRequestCondition(int toolFlag, IHttpRequestResponse messageInfo) {
     IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
     byte[] request = messageInfo.getRequest();
     switch (this.matchType) {
@@ -295,7 +295,7 @@ public class Condition {
           return !(messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition));
         }
       default:
-        return false;
+        throw new IllegalStateException("checkRequestCondition() not defined for the input.");
     }
   }
 
@@ -304,7 +304,13 @@ public class Condition {
   }
 
   public void setBooleanOperator(String booleanOperator) {
-    this.booleanOperator = booleanOperator;
+    if(Arrays.stream(BOOLEAN_OPERATOR_OPTIONS).anyMatch(s -> s.equals(booleanOperator))) {
+      this.booleanOperator = booleanOperator;
+    } else if (booleanOperator.equals("")) {
+      this.booleanOperator = booleanOperator;
+    } else {
+      this.booleanOperator = BOOLEAN_OPERATOR_OPTIONS[0];
+    }
   }
 
   public String getMatchType() {
@@ -312,7 +318,11 @@ public class Condition {
   }
 
   public void setMatchType(String matchType) {
-    this.matchType = matchType;
+    if(Arrays.stream(MATCH_TYPE_OPTIONS).anyMatch(s -> s.equals(matchType))) {
+      this.matchType = matchType;
+    } else {
+      this.matchType = MATCH_TYPE_OPTIONS[0];
+    }
   }
 
   public String getMatchRelationship() {
@@ -338,4 +348,5 @@ public class Condition {
   public void setEnabled(boolean enabled) {
     isEnabled = enabled;
   }
+
 }

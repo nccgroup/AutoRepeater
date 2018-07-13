@@ -7,22 +7,20 @@ package burp.Filter;
 
 import burp.Conditions.Condition;
 
-public class Filter extends Condition {
-
-  public Filter(
-      String booleanOperator,
-      String matchType,
-      String matchRelationship,
-      String matchCondition) {
-    super(booleanOperator, matchType, matchRelationship, matchCondition);
-  }
-
-  public Filter(
-      String booleanOperator,
-      String matchType,
-      String matchRelationship,
-      String matchCondition,
-      boolean isEnabled) {
-    super(booleanOperator, matchType, matchRelationship, matchCondition, isEnabled);
-  }
-}
+//public class Filter extends Condition {
+  //public Filter(
+  //    String booleanOperator,
+  //    String matchType,
+  //    String matchRelationship,
+  //    String matchCondition) {
+  //  super(booleanOperator, matchType, matchRelationship, matchCondition);
+  //}
+  //public Filter(
+  //    String booleanOperator,
+  //    String matchType,
+  //    String matchRelationship,
+  //    String matchCondition,
+  //    boolean isEnabled) {
+  //  super(booleanOperator, matchType, matchRelationship, matchCondition, isEnabled);
+  //}
+//}
