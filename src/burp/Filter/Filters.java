@@ -2,14 +2,12 @@ package burp.Filter;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
-import burp.Conditions.Condition;
-import burp.Conditions.ConditionTableModel;
+import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import javafx.scene.control.RadioButton;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -30,7 +28,7 @@ public class Filters {
   private JScrollPane filterScrollPane;
   private JRadioButton whitelistFilterRadioButton;
   private JRadioButton blacklistFilterRadioButton;
-  private ButtonGroup whitelistBlacklistRadioButtonGroup;
+  private ButtonGroup buttonGroup;
   private JTable filterTable;
   private JButton addFilterButton;
   private JPanel filtersButtonPanel;
@@ -69,6 +67,14 @@ public class Filters {
     matchFilterTextField.setText("");
   }
 
+  public boolean filter(LogEntry logEntry) {
+    if (whitelistFilterRadioButton.isSelected()) {
+      return filterTableModel.checkFilters(logEntry);
+    } else {
+      return !filterTableModel.checkFilters(logEntry);
+    }
+  }
+
   private void createUI() {
     GridBagConstraints c;
     //Filter Dialog
@@ -78,12 +84,13 @@ public class Filters {
     filterPanel.setLayout(new GridBagLayout());
     filterPanel.setPreferredSize(AutoRepeater.dialogDimension);
 
+
     whitelistFilterRadioButton = new JRadioButton("Whitelist");
     whitelistFilterRadioButton.setSelected(true);
     blacklistFilterRadioButton = new JRadioButton("Blacklist");
-    whitelistBlacklistRadioButtonGroup = new ButtonGroup();
-    whitelistBlacklistRadioButtonGroup.add(whitelistFilterRadioButton);
-    whitelistBlacklistRadioButtonGroup.add(blacklistFilterRadioButton);
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(whitelistFilterRadioButton);
+    buttonGroup.add(blacklistFilterRadioButton);
 
     booleanOperatorComboBox = new JComboBox<>(Filter.BOOLEAN_OPERATOR_OPTIONS);
     originalOrModifiedComboBox = new JComboBox<>(Filter.ORIGINAL_OR_MODIFIED);
@@ -220,13 +227,15 @@ public class Filters {
     filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
     c = new GridBagConstraints();
-    c.anchor = GridBagConstraints.FIRST_LINE_END;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.gridx = 0;
-    c.weightx = 1;
+    c.weightx = 0;
 
     filtersButtonPanel.add(addFilterButton, c);
     filtersButtonPanel.add(editFilterButton, c);
     filtersButtonPanel.add(deleteFilterButton, c);
+    filtersButtonPanel.add(whitelistFilterRadioButton, c);
+    filtersButtonPanel.add(blacklistFilterRadioButton, c);
 
     filterTableModel = new FilterTableModel();
     filterTable = new JTable(filterTableModel);
@@ -235,14 +244,12 @@ public class Filters {
     // Panel containing filter options
     filtersPanel.setLayout(new GridBagLayout());
 
-    //TODO: LEFT OFF HERE
-    filtersPanel.add(whitelistFilterRadioButton, c);
-    filtersPanel.add(blacklistFilterRadioButton, c);
-    
     c = new GridBagConstraints();
     c.ipady = 0;
     c.anchor = GridBagConstraints.PAGE_START;
     c.gridx = 0;
+    //filtersPanel.add(radioButtonPanel);
+    c.gridy = 1;
     filtersPanel.add(filtersButtonPanel, c);
     c.fill = GridBagConstraints.BOTH;
     c.weightx = 1;
@@ -250,11 +257,9 @@ public class Filters {
     c.gridx = 1;
     filtersPanel.add(filterScrollPane, c);
 
-    filterTableModel.addTableModelListener(e -> {
-      System.out.println(e.getColumn());
-      System.out.println(e.getFirstRow());
-      logManager.setFilter(this);
-    });
+    whitelistFilterRadioButton.addActionListener(e -> logManager.setFilter(this));
+    blacklistFilterRadioButton.addActionListener(e -> logManager.setFilter(this));
+    filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
     filterTable.addMouseListener(new MouseListener() {
       @Override
       public void mouseClicked(MouseEvent e) { logManager.setFilter(Filters.this); }
@@ -263,7 +268,7 @@ public class Filters {
       public void mousePressed(MouseEvent e) { logManager.setFilter(Filters.this); }
 
       @Override
-      public void mouseReleased(MouseEvent e) {}
+      public void mouseReleased(MouseEvent e) { logManager.setFilter(Filters.this);}
 
       @Override
       public void mouseEntered(MouseEvent e) {}

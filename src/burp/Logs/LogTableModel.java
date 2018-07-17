@@ -16,20 +16,21 @@ public class LogTableModel extends AbstractTableModel {
 
   public void addLogEntry(LogEntry logEntry, Filters filters) {
     log.add(logEntry);
-    if(filters.getFilterTableModel().checkFilters(logEntry)) {
+    if(filters.filter(logEntry)) {
       filteredLogs.add(logEntry);
     }
   }
 
   public void filterLogs(Filters filters) {
-      filteredLogs = new ArrayList<>();
-      for (LogEntry logEntry : log) {
-          if(filters.getFilterTableModel().checkFilters(logEntry)) {
-          filteredLogs.add(logEntry);
-          System.out.println("Adding row "+logEntry.getRequestResponseId());
-          fireTableDataChanged();
-        }
+    filteredLogs = new ArrayList<>();
+    for (LogEntry logEntry : log) {
+      if(filters.filter(logEntry)) {
+        filteredLogs.add(logEntry);
+        //System.out.println("Adding row "+logEntry.getRequestResponseId());
+        fireTableDataChanged();
       }
+    }
+    fireTableDataChanged();
     //new Thread(() -> {
     //}).start();
   }
