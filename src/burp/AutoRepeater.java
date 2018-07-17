@@ -1,8 +1,12 @@
 package burp;
 
+
 import burp.Conditions.Condition;
 import burp.Conditions.ConditionTableModel;
 import burp.Conditions.Conditions;
+import burp.Filter.Filter;
+import burp.Filter.FilterTableModel;
+import burp.Filter.Filters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
 import burp.Logs.LogManager;
@@ -19,13 +23,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import javax.swing.*;
@@ -100,7 +99,6 @@ public class AutoRepeater implements IMessageEditorController {
   JScrollPane responseLineComparerScollPane;
 
   // List of log entries for LogTable
-  private LogTableModel logTableModel;
   private LogManager logManager;
 
   // The current item selected in the log table
@@ -124,6 +122,8 @@ public class AutoRepeater implements IMessageEditorController {
   private Replacements baseReplacements;
   private ReplacementTableModel baseReplacementsTableModel;
 
+  private Filters filters;
+  private FilterTableModel filterTableModel;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
@@ -135,46 +135,58 @@ public class AutoRepeater implements IMessageEditorController {
     replacementsTableModel = replacements.getReplacementTableModel();
     baseReplacements = new Replacements();
     baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
+    logManager = new LogManager();
+    filters = new Filters(logManager);
+    filterTableModel = filters.getFilterTableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
   }
 
   public AutoRepeater(JsonObject configurationJson) {
-    this.callbacks = BurpExtender.getCallbacks();
-    helpers = callbacks.getHelpers();
-    gson = BurpExtender.getGson();
-    conditions = new Conditions();
-    conditionsTableModel = conditions.getConditionTableModel();
-    replacements = new Replacements();
-    replacementsTableModel = replacements.getReplacementTableModel();
-    baseReplacements = new Replacements();
-    baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
-    createUI();
-    if (configurationJson.get("isActivated").getAsBoolean()) {
-      activatedButton.setSelected(true);
+    this();
+    // clear out the conditions from the default constructor
+    conditionsTableModel.clearConditions();
+    filterTableModel.clearFilters();
+    // Initialize singular properties
+    if (configurationJson.get("isActivated") != null) {
+      activatedButton.setSelected(configurationJson.get("isActivated").getAsBoolean());
     }
-
+    if (configurationJson.get("isWhitelistFilter") != null) {
+      System.out.println(configurationJson.get("isWhitelistFilter").getAsBoolean());
+      filters.setWhitelist(configurationJson.get("isWhitelistFilter").getAsBoolean());
+    }
+    // Initialize lists
     if (configurationJson.get("baseReplacements") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("baseReplacements")) {
         baseReplacementsTableModel.addReplacement(gson.fromJson(element, Replacement.class));
       }
     }
-
     if (configurationJson.get("replacements") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("replacements")) {
         replacementsTableModel.addReplacement(gson.fromJson(element, Replacement.class));
       }
     }
-
     if (configurationJson.get("conditions") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("conditions")) {
         conditionsTableModel.addCondition(gson.fromJson(element, Condition.class));
       }
     }
+    if (configurationJson.get("filters") != null) {
+      for (JsonElement element : configurationJson.getAsJsonArray("filters")) {
+        filterTableModel.addFilter(gson.fromJson(element, Filter.class));
+      }
+    }
+    // If something was empty, put in the default values
+    if(conditionsTableModel.getConditions().size() == 0) {
+      setDefaultConditions();
+    }
+    if(filterTableModel.getFilters().size() == 0) {
+      setDefaultFilters();
+    }
   }
 
-  private void setDefaultState() {
+  public void setDefaultConditions() {
     conditionsTableModel.addCondition(new Condition(
         "",
         "Sent From Tool",
@@ -207,12 +219,31 @@ public class AutoRepeater implements IMessageEditorController {
     ));
   }
 
+  public void setDefaultFilters() {
+    filterTableModel.addFilter(new Filter(
+        "",
+        "Original",
+        "Sent From Tool",
+        "Burp",
+        ""
+    ));
+  }
+
+  private void setDefaultState() {
+    setDefaultConditions();
+    setDefaultFilters();
+  }
+
   public JsonObject toJson() {
     JsonObject autoRepeaterJson = new JsonObject();
+    // Add Static Properties
     autoRepeaterJson.addProperty("isActivated", activatedButton.isSelected());
+    autoRepeaterJson.addProperty("isWhitelistFilter", filters.isWhitelist());
+    // Add Arrays
     JsonArray baseReplacementsArray = new JsonArray();
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
+    JsonArray filtersArray = new JsonArray();
     for (Condition c : conditionsTableModel.getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
@@ -222,9 +253,13 @@ public class AutoRepeater implements IMessageEditorController {
     for (Replacement r : replacementsTableModel.getReplacements()) {
       replacementsArray.add(gson.toJsonTree(r));
     }
+    for (Filter f : filterTableModel.getFilters()) {
+      filtersArray.add(gson.toJsonTree(f));
+    }
     autoRepeaterJson.add("baseReplacements", baseReplacementsArray);
     autoRepeaterJson.add("replacements", replacementsArray);
     autoRepeaterJson.add("conditions", conditionsArray);
+    autoRepeaterJson.add("filters", filtersArray);
     return autoRepeaterJson;
   }
 
@@ -234,10 +269,6 @@ public class AutoRepeater implements IMessageEditorController {
 
   public LogTable getLogTable() {
     return logTable;
-  }
-
-  public LogTableModel getLogTableModel() {
-    return logTableModel;
   }
 
   public LogManager getLogManager() {
@@ -287,11 +318,10 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
+    configurationTabbedPane.addTab("Log Filter", filters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
-    logTableModel = new LogTableModel();
-    logManager = new LogManager(logTableModel);
     logTable = new LogTable(logManager.getLogTableModel());
     logTable.setAutoCreateRowSorter(true);
 
@@ -557,38 +587,14 @@ public class AutoRepeater implements IMessageEditorController {
     callbacks.customizeUiComponent(tabs);
   }
 
-
   public void modifyAndSendRequestAndLog(
       int toolFlag,
       boolean messageIsRequest,
       IHttpRequestResponse messageInfo ) {
-
-    //Although this isn't optimal, i'm generating the modified requests when a response is received.
-    //Burp doesn't have a nice way to tie arbitrary sent requests with a response received later.
-    //Doing it on request requires a ton of additional book keeping that i don't think warrants the benefits
     if (!messageIsRequest
         && activatedButton.isSelected()
         && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
-      boolean meetsConditions = false;
-      if (conditionsTableModel.getConditions().size() == 0) {
-        meetsConditions = true;
-      } else {
-        if (conditionsTableModel.getConditions()
-            .stream()
-            .filter(Condition::isEnabled)
-            .filter(c -> c.getBooleanOperator().equals("Or"))
-            .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-          meetsConditions = true;
-        }
-        if (conditionsTableModel.getConditions()
-            .stream()
-            .filter(Condition::isEnabled)
-            .filter(
-                c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
-            .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
-          meetsConditions = true;
-        }
-      }
+      boolean meetsConditions = conditionsTableModel.checkConditions(toolFlag, messageInfo);
       if (meetsConditions) {
         // Create a set to store each new unique request in
         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
@@ -617,16 +623,21 @@ public class AutoRepeater implements IMessageEditorController {
                 callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
             int row = logManager.getRowCount();
             LogEntry newLogEntry = new LogEntry(
-                row + 1,
+                logManager.getLogTableModel().getLogCount() + 1,
+                toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-            logManager.addEntry(newLogEntry);
+            logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);
             //BurpExtender.highlightTab();
           }
         }
       }
     }
+  }
+
+  public LogTableModel getLogTableModel() {
+    return logManager.getLogTableModel();
   }
 
   public void toggleConfigurationPane(boolean visible) {

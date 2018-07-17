@@ -1,11 +1,12 @@
 package burp.Conditions;
 
+import burp.IHttpRequestResponse;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
 public class ConditionTableModel extends AbstractTableModel {
 
-  private String[] columnNames = {
+  private final static String[] columnNames = {
       "Enabled",
       "Boolean Operator",
       "Match Type",
@@ -31,6 +32,30 @@ public class ConditionTableModel extends AbstractTableModel {
     conditions.set(replacementIndex, newCondition);
   }
 
+  public boolean checkConditions(int toolFlag, IHttpRequestResponse messageInfo) {
+    boolean meetsConditions = false;
+    if (getConditions().size() == 0) {
+      meetsConditions = true;
+    } else {
+      if (getConditions()
+          .stream()
+          .filter(Condition::isEnabled)
+          .filter(c -> c.getBooleanOperator().equals("Or"))
+          .anyMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+        meetsConditions = true;
+      }
+      if (getConditions()
+          .stream()
+          .filter(Condition::isEnabled)
+          .filter(
+              c -> c.getBooleanOperator().equals("And") || c.getBooleanOperator().equals(""))
+          .allMatch(c -> c.checkCondition(toolFlag, messageInfo))) {
+        meetsConditions = true;
+      }
+    }
+    return meetsConditions;
+  }
+
   public ArrayList<Condition> getConditions() {
     return conditions;
   }
@@ -43,6 +68,10 @@ public class ConditionTableModel extends AbstractTableModel {
     if (replacementIndex != 0) {
       conditions.remove(replacementIndex);
     }
+  }
+
+  public void clearConditions() {
+    conditions.clear();
   }
 
   @Override

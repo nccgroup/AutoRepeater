@@ -39,7 +39,7 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      // toggling settings panel
+      // Toggling settings panel
       if (toggleSettingsVisibility.getText().equals("Hide Settings Panel")) {
         showSettingsPanel = false;
         toggleSettingsVisibility.setText("Show Settings Panel");
@@ -47,8 +47,7 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
         showSettingsPanel = true;
         toggleSettingsVisibility.setText("Hide Settings Panel");
       }
-
-      // toggling every autorepeater tabs
+      // toggling every AutoRepeater tab
       for (AutoRepeater ar : autoRepeaters) {
         ar.toggleConfigurationPane(showSettingsPanel);
       }
@@ -107,16 +106,11 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
       int option = JOptionPane.showOptionDialog(rootPane, "Which tab would you like to export?", "Export Tabs",
           JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
-      if (option == 2) {
-        // cancel selected
-        return;
-      }
-
+      if (option == 2) { return; }
       final JFileChooser exportPathChooser = new JFileChooser();
-
       int returnVal = exportPathChooser.showSaveDialog(rootPane);
 
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
         BurpExtender.getCallbacks().printOutput("Cannot open a file dialog for exporting settings.");
         return;
       }

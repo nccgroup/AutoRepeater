@@ -2,6 +2,7 @@ package burp.Conditions;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
+import burp.IHttpRequestResponse;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.DefaultComboBoxModel;

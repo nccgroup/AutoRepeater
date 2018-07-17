@@ -47,7 +47,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     BurpExtender.gson = new Gson();
     //BurpExtender.gson = new GsonBuilder().setPrettyPrinting().create();
     autoRepeaters = new ArrayList<>();
-    executor = Executors.newFixedThreadPool(20);
+    executor = Executors.newFixedThreadPool(25);
     // create our UI
     SwingUtilities.invokeLater(() -> {
       mainTabbedPane = new JTabbedPane();

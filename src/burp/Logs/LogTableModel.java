@@ -1,32 +1,68 @@
 package burp.Logs;
 
-import burp.Logs.LogEntry;
+import burp.Filter.Filters;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
 public class LogTableModel extends AbstractTableModel {
 
-  private final ArrayList<LogEntry> log = new ArrayList<>();
+  private final ArrayList<LogEntry> log;
+  private ArrayList<LogEntry> filteredLogs;
 
-  public void addLogEntry(LogEntry newLogEntry) {
-    log.add(newLogEntry);
+  public LogTableModel() {
+    log = new ArrayList<>();
+    filteredLogs = new ArrayList<>();
+  }
+
+  public void addLogEntry(LogEntry logEntry, Filters filters) {
+    log.add(logEntry);
+    if(filters.filter(logEntry)) {
+      filteredLogs.add(logEntry);
+    }
+  }
+
+  public void filterLogs(Filters filters) {
+    filteredLogs = new ArrayList<>();
+    for (LogEntry logEntry : log) {
+      if(filters.filter(logEntry)) {
+        filteredLogs.add(logEntry);
+        //System.out.println("Adding row "+logEntry.getRequestResponseId());
+        fireTableDataChanged();
+      }
+    }
+    fireTableDataChanged();
+    //new Thread(() -> {
+    //}).start();
   }
 
   public void clearLogs() {
     log.clear();
+    filteredLogs.clear();
   }
 
   public LogEntry getLogEntry(int row) {
-    return log.get(row);
+    //return log.get(row);
+    return filteredLogs.get(row);
   }
 
   public ArrayList<LogEntry> getLog() {
+      //return log;
       return log;
+  }
+
+  public ArrayList<LogEntry> getFilteredLogs() {
+    //return log;
+    return filteredLogs;
+  }
+
+  public int getLogCount() {
+    return log.size();
   }
 
   @Override
   public int getRowCount() {
-    return log.size();
+    //return log.size();
+    return filteredLogs.size();
   }
 
   @Override
@@ -84,7 +120,8 @@ public class LogTableModel extends AbstractTableModel {
 
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    LogEntry logEntry = log.get(rowIndex);
+    //LogEntry logEntry = log.get(rowIndex);
+    LogEntry logEntry = filteredLogs.get(rowIndex);
 
     // ID, Mod Method, Mod URL, Orig Status, Mod Status, Orig Size, Mod Size, Size Difference, Response Distance
     switch (columnIndex) {

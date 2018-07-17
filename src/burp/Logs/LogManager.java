@@ -1,20 +1,25 @@
 package burp.Logs;
 
 import burp.BurpExtender;
+import burp.Filter.Filters;
 import burp.IHttpRequestResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
+import javax.swing.table.TableRowSorter;
 
 public class LogManager {
 
   private LogTableModel logTableModel;
   private ArrayList<LogEntry> entriesWithoutResponses;
+  private TableRowSorter<LogTableModel> tableRowSorter;
   private int matchCounter = 0;
 
-  public LogManager(LogTableModel logTableModel) {
-    this.logTableModel = logTableModel;
+  public LogManager() {
+    tableRowSorter = new TableRowSorter<>(logTableModel);
+    //tableRowSorter.setRowFilter(filter.getRowFilter());
     entriesWithoutResponses = new ArrayList<>();
+    logTableModel = new LogTableModel();
   }
 
   public synchronized int getRowCount() {
@@ -29,9 +34,14 @@ public class LogManager {
     return logTableModel.getLogEntry(row);
   }
 
-  public synchronized void addEntry(LogEntry logEntry) {
-    logTableModel.addLogEntry(logEntry);
+  public synchronized void addEntry(LogEntry logEntry, Filters filters) {
+    logTableModel.addLogEntry(logEntry, filters);
     //entriesWithoutResponses.add(logEntry);
+  }
+
+  public synchronized void setFilter(Filters filters) {
+    logTableModel.filterLogs(filters);
+    logTableModel.fireTableDataChanged();
   }
 
   //Keeping this around incase i go to switch the trigger back to on request
