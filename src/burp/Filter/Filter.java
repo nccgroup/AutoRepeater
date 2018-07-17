@@ -1,47 +1,48 @@
 package burp.Filter;
 
-//TODO: Notes for implementation.
-// Each tab will has a list of filters.
-// There will be three types of filters: whitelist, blacklist, and highlight
-// Each filter will be a set of and/or checks based on conditions
-
 import burp.Conditions.Condition;
-import burp.Conditions.Conditions;
-import burp.IHttpRequestResponse;
-import burp.IHttpRequestResponsePersisted;
 import burp.Logs.LogEntry;
-import burp.Logs.LogTableModel;
-import java.util.Comparator;
-import javax.swing.RowFilter;
-import javax.swing.table.TableRowSorter;
 
-public class Filter {
-  private Conditions whiteListConditions = new Conditions();
-  private Conditions blackListConditions = new Conditions();
-  //private RowFilter<LogTableModel, Integer> rowFilter = new RowFilter<LogTableModel, Integer>() {
-  //  @Override
-  //  public boolean include(Entry<? extends LogTableModel, ? extends Integer> entry) {
-  //    LogTableModel logTableModel = entry.getModel();
-  //    LogEntry logEntry = logTableModel.getLogEntry(entry.getIdentifier());
-  //    int toolFlag = logEntry.getToolFlag();
-  //    IHttpRequestResponsePersisted originalRequestResponse = logEntry.getOriginalRequestResponse();
-  //    //return (whiteListConditions.checkConditions(toolFlag, originalRequestResponse)
-  //    //    && !blackListConditions.checkConditions(toolFlag, originalRequestResponse));
-  //    System.out.println(whiteListConditions.checkConditions(toolFlag, originalRequestResponse));
-  //    return whiteListConditions.checkConditions(toolFlag, originalRequestResponse);
-  //  }
-  //};
+public class Filter extends Condition {
+  private String originalOrModified;
+  public static final String[] ORIGINAL_OR_MODIFIED= {"Original", "Modified"};
 
-  public boolean check(int toolFlag, IHttpRequestResponse originalRequestResponse) {
-    System.out.println(whiteListConditions.getConditionTableModel().getConditions().size());
-    return whiteListConditions.checkConditions(toolFlag, originalRequestResponse);
+  public Filter(
+      String booleanOperator,
+      String originalOrModified,
+      String matchType,
+      String matchRelationship,
+      String matchCondition,
+      boolean isEnabled) {
+    super(booleanOperator, matchType, matchRelationship, matchCondition, isEnabled);
+    setOriginalOrModified(originalOrModified);
+  }
+  public Filter(
+      String booleanOperator,
+      String originalOrModified,
+      String matchType,
+      String matchRelationship,
+      String matchCondition) {
+    this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
   }
 
-  public void addWhiteListCondition(Condition c) {
-    whiteListConditions.getConditionTableModel().addCondition(c);
+  public boolean checkCondition(LogEntry logEntry) {
+    if (getOriginalOrModified().equals("Original")) {
+      return checkCondition(logEntry.getToolFlag(), logEntry.getOriginalRequestResponse());
+    } else {
+      return checkCondition(logEntry.getToolFlag(), logEntry.getModifiedRequestResponse());
+    }
   }
 
-  //public RowFilter<LogTableModel, Integer> getRowFilter() {
-  //  return rowFilter;
-  //}
+  public String getOriginalOrModified() {
+    return originalOrModified;
+  }
+
+  public void setOriginalOrModified(String originalOrModified) {
+    if (originalOrModified.equals("Original")) {
+      this.originalOrModified = "Original";
+    } else {
+      this.originalOrModified = "Modified";
+    }
+  }
 }

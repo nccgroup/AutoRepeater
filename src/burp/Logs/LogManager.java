@@ -1,8 +1,7 @@
 package burp.Logs;
 
 import burp.BurpExtender;
-import burp.Conditions.Condition;
-import burp.Filter.Filter;
+import burp.Filter.Filters;
 import burp.IHttpRequestResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +19,7 @@ public class LogManager {
     tableRowSorter = new TableRowSorter<>(logTableModel);
     //tableRowSorter.setRowFilter(filter.getRowFilter());
     entriesWithoutResponses = new ArrayList<>();
-    logTableModel = new LogTableModel(new Filter());
+    logTableModel = new LogTableModel();
   }
 
   public synchronized int getRowCount() {
@@ -35,14 +34,13 @@ public class LogManager {
     return logTableModel.getLogEntry(row);
   }
 
-  public synchronized void addEntry(LogEntry logEntry) {
-    logTableModel.addLogEntry(logEntry);
+  public synchronized void addEntry(LogEntry logEntry, Filters filters) {
+    logTableModel.addLogEntry(logEntry, filters);
     //entriesWithoutResponses.add(logEntry);
   }
 
-  public synchronized void setFilter(Filter filter) {
-    logTableModel.setFilter(filter);
-    logTableModel.filterLogs();
+  public synchronized void setFilter(Filters filters) {
+    logTableModel.filterLogs(filters);
     logTableModel.fireTableDataChanged();
   }
 

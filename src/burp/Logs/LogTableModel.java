@@ -1,42 +1,37 @@
 package burp.Logs;
 
-import burp.Filter.Filter;
-import burp.Logs.LogEntry;
+import burp.Filter.Filters;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
 public class LogTableModel extends AbstractTableModel {
 
-  private final ArrayList<LogEntry> log = new ArrayList<>();
-  private ArrayList<LogEntry> filteredLogs = new ArrayList<>();
-  private Filter filter;
+  private final ArrayList<LogEntry> log;
+  private ArrayList<LogEntry> filteredLogs;
 
-  public LogTableModel(Filter filter) {
-    this.filter = filter;
+  public LogTableModel() {
+    log = new ArrayList<>();
+    filteredLogs = new ArrayList<>();
   }
 
-  public void addLogEntry(LogEntry newLogEntry) {
-    log.add(newLogEntry);
-    if(filter.check(newLogEntry.getToolFlag(), newLogEntry.getOriginalRequestResponse())) {
-      filteredLogs.add(newLogEntry);
+  public void addLogEntry(LogEntry logEntry, Filters filters) {
+    log.add(logEntry);
+    if(filters.getFilterTableModel().checkFilters(logEntry)) {
+      filteredLogs.add(logEntry);
     }
   }
 
-  public void filterLogs() {
-    new Thread(() -> {
+  public void filterLogs(Filters filters) {
       filteredLogs = new ArrayList<>();
       for (LogEntry logEntry : log) {
-        if(filter.check(logEntry.getToolFlag(), logEntry.getOriginalRequestResponse())) {
+          if(filters.getFilterTableModel().checkFilters(logEntry)) {
           filteredLogs.add(logEntry);
           System.out.println("Adding row "+logEntry.getRequestResponseId());
           fireTableDataChanged();
         }
       }
-    }).start();
-  }
-
-  public void setFilter(Filter filter) {
-    this.filter = filter;
+    //new Thread(() -> {
+    //}).start();
   }
 
   public void clearLogs() {

@@ -1,9 +1,12 @@
 package burp;
 
+
 import burp.Conditions.Condition;
 import burp.Conditions.ConditionTableModel;
 import burp.Conditions.Conditions;
 import burp.Filter.Filter;
+import burp.Filter.FilterTableModel;
+import burp.Filter.Filters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
 import burp.Logs.LogManager;
@@ -20,13 +23,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import javax.swing.*;
@@ -124,6 +122,8 @@ public class AutoRepeater implements IMessageEditorController {
   private Replacements baseReplacements;
   private ReplacementTableModel baseReplacementsTableModel;
 
+  private Filters filters;
+  private FilterTableModel filterTableModel;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
@@ -135,22 +135,18 @@ public class AutoRepeater implements IMessageEditorController {
     replacementsTableModel = replacements.getReplacementTableModel();
     baseReplacements = new Replacements();
     baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
+    logManager = new LogManager();
+    filters = new Filters(logManager);
+    filterTableModel = filters.getFilterTableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
   }
 
   public AutoRepeater(JsonObject configurationJson) {
-    this.callbacks = BurpExtender.getCallbacks();
-    helpers = callbacks.getHelpers();
-    gson = BurpExtender.getGson();
-    conditions = new Conditions();
-    conditionsTableModel = conditions.getConditionTableModel();
-    replacements = new Replacements();
-    replacementsTableModel = replacements.getReplacementTableModel();
-    baseReplacements = new Replacements();
-    baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
-    createUI();
+    this();
+    // clear out the conditions from the default constructor
+    conditionsTableModel.clearConditions();
     if (configurationJson.get("isActivated").getAsBoolean()) {
       activatedButton.setSelected(true);
     }
@@ -205,6 +201,14 @@ public class AutoRepeater implements IMessageEditorController {
         "",
         false
     ));
+
+    filterTableModel.addFilter(new Filter(
+        "",
+        "Original",
+        "Sent From Tool",
+        "Burp",
+        ""
+    ));
   }
 
   public JsonObject toJson() {
@@ -255,19 +259,8 @@ public class AutoRepeater implements IMessageEditorController {
     activatedButton.addChangeListener(e -> {
       if (activatedButton.isSelected()) {
         activatedButton.setText("Deactivate AutoRepeater");
-        logManager.setFilter(new Filter());
       } else {
         activatedButton.setText("Activate AutoRepeater");
-        Filter filter = new Filter();
-        filter.addWhiteListCondition(
-            new Condition(
-                "",
-                "String In Request",
-                "Matches",
-                "gws",
-                true
-            ));
-        logManager.setFilter(filter);
       }
     });
 
@@ -294,10 +287,10 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
+    configurationTabbedPane.addTab("Log Filter", filters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
-    logManager = new LogManager();
     logTable = new LogTable(logManager.getLogTableModel());
     logTable.setAutoCreateRowSorter(true);
 
@@ -563,169 +556,6 @@ public class AutoRepeater implements IMessageEditorController {
     callbacks.customizeUiComponent(tabs);
   }
 
-  private JScrollPane createExportPanel() {
-    final Dimension buttonDimension = new Dimension(120, 20);
-    final Dimension comboBoxDimension = new Dimension(200, 20);
-
-    final String[] EXPORT_OPTIONS = {"CSV", "JSON"};
-    final String[] EXPORT_WHICH_OPTIONS = {"All Tab Logs", "Selected Tab Logs"};
-    final String[] EXPORT_VALUE_OPTIONS = {"Log Entry", "Log Entry + Full HTTP Request"};
-    final JComboBox<String> exportTypeComboBox = new JComboBox<>(EXPORT_OPTIONS);
-    final JComboBox<String> exportWhichComboBox = new JComboBox<>(EXPORT_WHICH_OPTIONS);
-    final JComboBox<String> exportValueComboBox = new JComboBox<>(EXPORT_VALUE_OPTIONS);
-    final JButton exportButton = new JButton("Export Logs");
-    final JFileChooser exportPathChooser = new JFileChooser();
-    final JLabel exportLogsLabel = new JLabel("Export Logs");
-    //final JFileChooser importPathChooser = new JFileChooser();
-
-    // Log Exporting Related Things
-    exportButton.setPreferredSize(buttonDimension);
-    exportButton.setMaximumSize(buttonDimension);
-    exportButton.setMaximumSize(buttonDimension);
-    exportTypeComboBox.setPreferredSize(comboBoxDimension);
-    exportTypeComboBox.setMinimumSize(comboBoxDimension);
-    exportTypeComboBox.setMaximumSize(comboBoxDimension);
-    exportWhichComboBox.setPreferredSize(comboBoxDimension);
-    exportWhichComboBox.setMinimumSize(comboBoxDimension);
-    exportWhichComboBox.setMaximumSize(comboBoxDimension);
-    exportValueComboBox.setPreferredSize(comboBoxDimension);
-    exportValueComboBox.setMinimumSize(comboBoxDimension);
-    exportValueComboBox.setMaximumSize(comboBoxDimension);
-
-    JPanel exportPanel = new JPanel();
-    exportPanel.setLayout(new BoxLayout(exportPanel, BoxLayout.PAGE_AXIS));
-    exportLogsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportLogsLabel);
-    exportWhichComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportWhichComboBox);
-    exportValueComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportValueComboBox);
-    exportTypeComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(exportTypeComboBox);
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
-    exportButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-    buttonPanel.add(exportButton);
-    buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportPanel.add(buttonPanel);
-
-    exportButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        ArrayList<LogEntry> logEntries = new ArrayList<>();
-        // Collect relevant entries
-        if ((exportWhichComboBox.getSelectedItem()).equals("All Tab Logs")) {
-          logEntries = logManager.getLogTableModel().getLog();
-        } else if ((exportWhichComboBox.getSelectedItem()).equals("Selected Tab Logs")) {
-          int[] selectedRows = logTable.getSelectedRows();
-          for (int row : selectedRows) {
-            logEntries.add(logManager.getLogEntry(logTable.convertRowIndexToModel(row)));
-          }
-        }
-        //Determine if whole request should be exported or just the log contents
-        boolean exportFullHttp = !((exportValueComboBox.getSelectedItem()).equals("Log Entry"));
-
-        if ((exportTypeComboBox.getSelectedItem()).equals("CSV")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(Utils.exportLogEntriesToCsv(logEntries, exportFullHttp));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        } else if ((exportTypeComboBox.getSelectedItem()).equals("JSON")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(Utils.exportLogEntriesToJson(logEntries, exportFullHttp));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    });
-
-    JLabel exportSettingsLabel = new JLabel("Export Settings");
-    exportSettingsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    //exportPanel.add(exportLogsLabel);
-    // TODO: Add export combobox to chose this tab or all tabs
-
-    exportPanel.add(exportSettingsLabel);
-
-    final String[] EXPORT_WHICH_TAB_SETTINGS_OPTIONS = {"This Tab", "Every Tab"};
-    final JComboBox<String> exportWhichTabSettingsComboBox = new JComboBox<>(
-        EXPORT_WHICH_TAB_SETTINGS_OPTIONS);
-    exportWhichTabSettingsComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    exportWhichTabSettingsComboBox.setPreferredSize(comboBoxDimension);
-    exportWhichTabSettingsComboBox.setMinimumSize(comboBoxDimension);
-    exportWhichTabSettingsComboBox.setMaximumSize(comboBoxDimension);
-
-    final JButton exportSettingsButton = new JButton("Export Settings");
-    exportSettingsButton.setPreferredSize(buttonDimension);
-    exportSettingsButton.setMaximumSize(buttonDimension);
-    exportSettingsButton.setMaximumSize(buttonDimension);
-    exportSettingsButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    exportSettingsButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        //ArrayList<LogEntry> logEntries = new ArrayList<>();
-        // Collect relevant entries
-        if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("This Tab")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(BurpExtender.exportSave(this));
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        } else if ((exportWhichTabSettingsComboBox.getSelectedItem()).equals("Every Tab")) {
-          try (PrintWriter out = new PrintWriter(file.getAbsolutePath())) {
-            out.println(BurpExtender.exportSave());
-          } catch (FileNotFoundException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    });
-
-    exportPanel.add(exportWhichTabSettingsComboBox);
-    exportPanel.add(exportSettingsButton);
-
-    final JLabel importSettingsLabel = new JLabel("Import Settings");
-    importSettingsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    final String[] IMPORT_REPLACE_TABS_OPTIONS = {"Do Not Replace Tabs", "Replace Tabs"};
-    final JComboBox<String> importReplaceTabsComboxBox = new JComboBox<>(
-        IMPORT_REPLACE_TABS_OPTIONS);
-    importReplaceTabsComboxBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    importReplaceTabsComboxBox.setPreferredSize(comboBoxDimension);
-    importReplaceTabsComboxBox.setMinimumSize(comboBoxDimension);
-    importReplaceTabsComboxBox.setMaximumSize(comboBoxDimension);
-
-    final JButton importButton = new JButton("Import Settings");
-    importButton.setPreferredSize(buttonDimension);
-    importButton.setMaximumSize(buttonDimension);
-    importButton.setMaximumSize(buttonDimension);
-    importButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    importButton.addActionListener((ActionEvent l) -> {
-      int returnVal = exportPathChooser.showOpenDialog(mainSplitPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File file = exportPathChooser.getSelectedFile();
-        String fileData = Utils.readFile(file);
-        if (!fileData.equals("")) {
-          if ((importReplaceTabsComboxBox.getSelectedItem()).equals("Do Not Replace Tabs")) {
-            BurpExtender.initializeFromSave(fileData, false);
-          } else if ((importReplaceTabsComboxBox.getSelectedItem()).equals("Replace Tabs")) {
-            BurpExtender.getCallbacks().printOutput("Removing Tabs");
-            BurpExtender.initializeFromSave(fileData, true);
-          }
-        }
-      }
-    });
-    exportPanel.add(importSettingsLabel);
-    exportPanel.add(importReplaceTabsComboxBox);
-    exportPanel.add(importButton);
-    return new JScrollPane(exportPanel);
-  }
-
   public void modifyAndSendRequestAndLog(
       int toolFlag,
       boolean messageIsRequest,
@@ -733,7 +563,7 @@ public class AutoRepeater implements IMessageEditorController {
     if (!messageIsRequest
         && activatedButton.isSelected()
         && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
-      boolean meetsConditions = conditions.checkConditions(toolFlag, messageInfo);
+      boolean meetsConditions = conditionsTableModel.checkConditions(toolFlag, messageInfo);
       if (meetsConditions) {
         // Create a set to store each new unique request in
         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
@@ -766,7 +596,7 @@ public class AutoRepeater implements IMessageEditorController {
                 toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-            logManager.addEntry(newLogEntry);
+            logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);
             //BurpExtender.highlightTab();
           }
