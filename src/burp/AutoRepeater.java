@@ -147,30 +147,46 @@ public class AutoRepeater implements IMessageEditorController {
     this();
     // clear out the conditions from the default constructor
     conditionsTableModel.clearConditions();
-    if (configurationJson.get("isActivated").getAsBoolean()) {
-      activatedButton.setSelected(true);
+    filterTableModel.clearFilters();
+    // Initialize singular properties
+    if (configurationJson.get("isActivated") != null) {
+      activatedButton.setSelected(configurationJson.get("isActivated").getAsBoolean());
     }
-
+    if (configurationJson.get("isWhitelistFilter") != null) {
+      System.out.println(configurationJson.get("isWhitelistFilter").getAsBoolean());
+      filters.setWhitelist(configurationJson.get("isWhitelistFilter").getAsBoolean());
+    }
+    // Initialize lists
     if (configurationJson.get("baseReplacements") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("baseReplacements")) {
         baseReplacementsTableModel.addReplacement(gson.fromJson(element, Replacement.class));
       }
     }
-
     if (configurationJson.get("replacements") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("replacements")) {
         replacementsTableModel.addReplacement(gson.fromJson(element, Replacement.class));
       }
     }
-
     if (configurationJson.get("conditions") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("conditions")) {
         conditionsTableModel.addCondition(gson.fromJson(element, Condition.class));
       }
     }
+    if (configurationJson.get("filters") != null) {
+      for (JsonElement element : configurationJson.getAsJsonArray("filters")) {
+        filterTableModel.addFilter(gson.fromJson(element, Filter.class));
+      }
+    }
+    // If something was empty, put in the default values
+    if(conditionsTableModel.getConditions().size() == 0) {
+      setDefaultConditions();
+    }
+    if(filterTableModel.getFilters().size() == 0) {
+      setDefaultFilters();
+    }
   }
 
-  private void setDefaultState() {
+  public void setDefaultConditions() {
     conditionsTableModel.addCondition(new Condition(
         "",
         "Sent From Tool",
@@ -201,7 +217,9 @@ public class AutoRepeater implements IMessageEditorController {
         "",
         false
     ));
+  }
 
+  public void setDefaultFilters() {
     filterTableModel.addFilter(new Filter(
         "",
         "Original",
@@ -211,12 +229,21 @@ public class AutoRepeater implements IMessageEditorController {
     ));
   }
 
+  private void setDefaultState() {
+    setDefaultConditions();
+    setDefaultFilters();
+  }
+
   public JsonObject toJson() {
     JsonObject autoRepeaterJson = new JsonObject();
+    // Add Static Properties
     autoRepeaterJson.addProperty("isActivated", activatedButton.isSelected());
+    autoRepeaterJson.addProperty("isWhitelistFilter", filters.isWhitelist());
+    // Add Arrays
     JsonArray baseReplacementsArray = new JsonArray();
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
+    JsonArray filtersArray = new JsonArray();
     for (Condition c : conditionsTableModel.getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
@@ -226,9 +253,13 @@ public class AutoRepeater implements IMessageEditorController {
     for (Replacement r : replacementsTableModel.getReplacements()) {
       replacementsArray.add(gson.toJsonTree(r));
     }
+    for (Filter f : filterTableModel.getFilters()) {
+      filtersArray.add(gson.toJsonTree(f));
+    }
     autoRepeaterJson.add("baseReplacements", baseReplacementsArray);
     autoRepeaterJson.add("replacements", replacementsArray);
     autoRepeaterJson.add("conditions", conditionsArray);
+    autoRepeaterJson.add("filters", filtersArray);
     return autoRepeaterJson;
   }
 

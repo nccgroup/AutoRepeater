@@ -50,6 +50,7 @@ public class Filters {
 
   private FilterTableModel filterTableModel;
   private LogManager logManager;
+  private boolean isWhitelist;
 
   public Filters(LogManager logManager) {
     filterTableModel = new FilterTableModel();
@@ -62,18 +63,21 @@ public class Filters {
 
   private void resetFilterDialog() {
     booleanOperatorComboBox.setSelectedIndex(0);
+    originalOrModifiedComboBox.setSelectedIndex(0);
     matchTypeComboBox.setSelectedIndex(0);
     matchRelationshipComboBox.setSelectedIndex(0);
     matchFilterTextField.setText("");
   }
 
   public boolean filter(LogEntry logEntry) {
-    if (whitelistFilterRadioButton.isSelected()) {
+    if (isWhitelist) {
       return filterTableModel.checkFilters(logEntry);
     } else {
       return !filterTableModel.checkFilters(logEntry);
     }
   }
+
+  public boolean isWhitelist() { return isWhitelist; }
 
   private void createUI() {
     GridBagConstraints c;
@@ -83,7 +87,6 @@ public class Filters {
     filterPanel = new JPanel();
     filterPanel.setLayout(new GridBagLayout());
     filterPanel.setPreferredSize(AutoRepeater.dialogDimension);
-
 
     whitelistFilterRadioButton = new JRadioButton("Whitelist");
     whitelistFilterRadioButton.setSelected(true);
@@ -243,12 +246,10 @@ public class Filters {
 
     // Panel containing filter options
     filtersPanel.setLayout(new GridBagLayout());
-
     c = new GridBagConstraints();
     c.ipady = 0;
     c.anchor = GridBagConstraints.PAGE_START;
     c.gridx = 0;
-    //filtersPanel.add(radioButtonPanel);
     c.gridy = 1;
     filtersPanel.add(filtersButtonPanel, c);
     c.fill = GridBagConstraints.BOTH;
@@ -257,8 +258,17 @@ public class Filters {
     c.gridx = 1;
     filtersPanel.add(filterScrollPane, c);
 
-    whitelistFilterRadioButton.addActionListener(e -> logManager.setFilter(this));
-    blacklistFilterRadioButton.addActionListener(e -> logManager.setFilter(this));
+    // Refilter the logs whenever anything is touched. For whatever reason click the enabled
+    // checkbox didn't trigger a tablemodelupdated action so i'm doing this instead.
+    whitelistFilterRadioButton.addActionListener(e -> {
+      logManager.setFilter(this);
+      isWhitelist = true;
+    });
+    blacklistFilterRadioButton.addActionListener(e -> {
+      logManager.setFilter(this);
+      isWhitelist = false;
+    });
+
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
     filterTable.addMouseListener(new MouseListener() {
       @Override
@@ -276,5 +286,14 @@ public class Filters {
       @Override
       public void mouseExited(MouseEvent e) {}
     });
+  }
+
+  public void setWhitelist(boolean whitelist) {
+    isWhitelist = whitelist;
+    if(isWhitelist) {
+      whitelistFilterRadioButton.setSelected(true);
+    } else {
+      blacklistFilterRadioButton.setSelected(true);
+    }
   }
 }

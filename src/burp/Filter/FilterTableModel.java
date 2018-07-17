@@ -37,17 +37,17 @@ public class FilterTableModel extends AbstractTableModel {
 
   public boolean checkFilters(LogEntry logEntry) {
     boolean meetsFilters = false;
-    if (getfilters().size() == 0) {
+    if (getFilters().size() == 0) {
       meetsFilters = true;
     } else {
-      if (getfilters()
+      if (getFilters()
           .stream()
           .filter(Filter::isEnabled)
           .filter(f -> f.getBooleanOperator().equals("Or"))
           .anyMatch(f -> f.checkCondition(logEntry))) {
         meetsFilters = true;
       }
-      if (getfilters()
+      if (getFilters()
           .stream()
           .filter(Filter::isEnabled)
           .filter(f -> f.getBooleanOperator().equals("And") || f.getBooleanOperator().equals(""))
@@ -58,7 +58,7 @@ public class FilterTableModel extends AbstractTableModel {
     return meetsFilters;
   }
 
-  public ArrayList<Filter> getfilters() {
+  public ArrayList<Filter> getFilters() {
     return filters;
   }
 
