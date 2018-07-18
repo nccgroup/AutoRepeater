@@ -2,7 +2,6 @@ package burp.Conditions;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
-import burp.IHttpRequestResponse;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -130,7 +129,7 @@ public class Conditions {
             (String) matchRelationshipComboBox.getSelectedItem(),
             matchConditionTextField.getText()
         );
-        conditionTableModel.addCondition(newCondition);
+        conditionTableModel.add(newCondition);
         conditionTableModel.fireTableDataChanged();
       }
       resetConditionDialog();
@@ -143,7 +142,7 @@ public class Conditions {
 
     editConditionButton.addActionListener(e -> {
       int selectedRow = conditionTable.getSelectedRow();
-      Condition tempCondition = conditionTableModel.getCondition(selectedRow);
+      Condition tempCondition = conditionTableModel.get(selectedRow);
 
       booleanOperatorComboBox.setSelectedItem(tempCondition.getBooleanOperator());
       matchTypeComboBox.setSelectedItem(tempCondition.getMatchType());
@@ -165,7 +164,7 @@ public class Conditions {
         );
         newCondition.setEnabled(tempCondition.isEnabled());
 
-        conditionTableModel.updateCondition(selectedRow, newCondition);
+        conditionTableModel.update(selectedRow, newCondition);
         conditionTableModel.fireTableDataChanged();
       }
       resetConditionDialog();
@@ -178,7 +177,7 @@ public class Conditions {
 
     deleteConditionButton.addActionListener(e -> {
       int selectedRow = conditionTable.getSelectedRow();
-      conditionTableModel.deleteCondition(selectedRow);
+      conditionTableModel.delete(selectedRow);
       conditionTableModel.fireTableDataChanged();
     });
 
