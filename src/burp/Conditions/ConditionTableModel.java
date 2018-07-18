@@ -21,9 +21,7 @@ public class ConditionTableModel extends AbstractTableModel {
     conditions = new ArrayList<>();
   }
 
-  public void add(Condition condition) {
-    conditions.add(condition);
-  }
+  public void add(Condition condition) { conditions.add(condition); }
 
   public void update(int index, Condition condition) {
     if (index == 0) {

@@ -7,6 +7,8 @@ import burp.Conditions.Conditions;
 import burp.Filter.Filter;
 import burp.Filter.FilterTableModel;
 import burp.Filter.Filters;
+import burp.Highlighter.HighlighterTableModel;
+import burp.Highlighter.Highlighters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
 import burp.Logs.LogManager;
@@ -125,6 +127,9 @@ public class AutoRepeater implements IMessageEditorController {
   private Filters filters;
   private FilterTableModel filterTableModel;
 
+  private Highlighters highlighters;
+  private HighlighterTableModel highlighterTableModel;
+
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
     helpers = callbacks.getHelpers();
@@ -138,6 +143,8 @@ public class AutoRepeater implements IMessageEditorController {
     logManager = new LogManager();
     filters = new Filters(logManager);
     filterTableModel = filters.getFilterTableModel();
+    highlighters = new Highlighters(logManager);
+    highlighterTableModel = highlighters.getHighlighterTableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
@@ -301,7 +308,7 @@ public class AutoRepeater implements IMessageEditorController {
 
     configurationPane = new JPanel();
     configurationPane.setLayout(new GridBagLayout());
-    Dimension configurationPaneDimension = new Dimension(400, 150);
+    Dimension configurationPaneDimension = new Dimension(470, 150);
     configurationPane.setMinimumSize(configurationPaneDimension);
     //configurationPane.setMaximumSize(configurationPaneDimension);
     configurationPane.setPreferredSize(configurationPaneDimension);
@@ -318,6 +325,7 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
     configurationTabbedPane.addTab("Log Filter", filters.getUI());
+    configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();

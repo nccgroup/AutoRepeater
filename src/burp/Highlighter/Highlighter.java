@@ -19,26 +19,45 @@ public class Highlighter extends Filter {
     Color.BLACK
   };
 
+  final static String[] COLOR_NAMES = {
+      "WHITE",
+      "RED",
+      "ORANGE",
+      "YELLOW",
+      "GREEN",
+      "CYAN",
+      "PINK",
+      "MAGENTA",
+      "GRAY",
+      "BLACK"
+  };
+
+  public static Color getColorFromName(String colorName) {
+    for (int i = 0; i < COLOR_NAMES.length; i++) {
+      if (COLOR_NAMES[i].equals(colorName)) {
+        return COLORS[i];
+      }
+    }
+    return COLORS[0];
+  }
+
   public Highlighter(
-      int color,
       String booleanOperator,
       String originalOrModified,
       String matchType,
       String matchRelationship,
       String matchCondition,
-      boolean isEnabled ) {
+      boolean isEnabled) {
     super(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, isEnabled);
-    setColor(color);
   }
 
   public Highlighter(
-      int color,
       String booleanOperator,
       String originalOrModified,
       String matchType,
       String matchRelationship,
       String matchCondition) {
-    this(color, booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
+    this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
   }
 
   public Color getColor() { return COLORS[color]; }
