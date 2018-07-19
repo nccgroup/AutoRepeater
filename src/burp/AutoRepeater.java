@@ -7,6 +7,8 @@ import burp.Conditions.Conditions;
 import burp.Filter.Filter;
 import burp.Filter.FilterTableModel;
 import burp.Filter.Filters;
+import burp.Highlighter.HighlighterTableModel;
+import burp.Highlighter.Highlighters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
 import burp.Logs.LogManager;
@@ -125,6 +127,9 @@ public class AutoRepeater implements IMessageEditorController {
   private Filters filters;
   private FilterTableModel filterTableModel;
 
+  private Highlighters highlighters;
+  private HighlighterTableModel highlighterTableModel;
+
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
     helpers = callbacks.getHelpers();
@@ -138,6 +143,8 @@ public class AutoRepeater implements IMessageEditorController {
     logManager = new LogManager();
     filters = new Filters(logManager);
     filterTableModel = filters.getFilterTableModel();
+    highlighters = new Highlighters(logManager);
+    highlighterTableModel = highlighters.getHighlighterTableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
@@ -146,14 +153,13 @@ public class AutoRepeater implements IMessageEditorController {
   public AutoRepeater(JsonObject configurationJson) {
     this();
     // clear out the conditions from the default constructor
-    conditionsTableModel.clearConditions();
-    filterTableModel.clearFilters();
+    conditionsTableModel.clear();
+    filterTableModel.clear();
     // Initialize singular properties
     if (configurationJson.get("isActivated") != null) {
       activatedButton.setSelected(configurationJson.get("isActivated").getAsBoolean());
     }
     if (configurationJson.get("isWhitelistFilter") != null) {
-      System.out.println(configurationJson.get("isWhitelistFilter").getAsBoolean());
       filters.setWhitelist(configurationJson.get("isWhitelistFilter").getAsBoolean());
     }
     // Initialize lists
@@ -169,12 +175,12 @@ public class AutoRepeater implements IMessageEditorController {
     }
     if (configurationJson.get("conditions") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("conditions")) {
-        conditionsTableModel.addCondition(gson.fromJson(element, Condition.class));
+        conditionsTableModel.add(gson.fromJson(element, Condition.class));
       }
     }
     if (configurationJson.get("filters") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("filters")) {
-        filterTableModel.addFilter(gson.fromJson(element, Filter.class));
+        filterTableModel.add(gson.fromJson(element, Filter.class));
       }
     }
     // If something was empty, put in the default values
@@ -187,14 +193,14 @@ public class AutoRepeater implements IMessageEditorController {
   }
 
   public void setDefaultConditions() {
-    conditionsTableModel.addCondition(new Condition(
+    conditionsTableModel.add(new Condition(
         "",
         "Sent From Tool",
         "Burp",
         ""
     ));
 
-    conditionsTableModel.addCondition(new Condition(
+    conditionsTableModel.add(new Condition(
         "Or",
         "Request",
         "Contains Parameters",
@@ -202,7 +208,7 @@ public class AutoRepeater implements IMessageEditorController {
         false
     ));
 
-    conditionsTableModel.addCondition(new Condition(
+    conditionsTableModel.add(new Condition(
         "Or",
         "HTTP Method",
         "Does Not Match",
@@ -210,7 +216,7 @@ public class AutoRepeater implements IMessageEditorController {
         false
     ));
 
-    conditionsTableModel.addCondition(new Condition(
+    conditionsTableModel.add(new Condition(
         "And",
         "URL",
         "Is In Scope",
@@ -220,7 +226,7 @@ public class AutoRepeater implements IMessageEditorController {
   }
 
   public void setDefaultFilters() {
-    filterTableModel.addFilter(new Filter(
+    filterTableModel.add(new Filter(
         "",
         "Original",
         "Sent From Tool",
@@ -302,7 +308,7 @@ public class AutoRepeater implements IMessageEditorController {
 
     configurationPane = new JPanel();
     configurationPane.setLayout(new GridBagLayout());
-    Dimension configurationPaneDimension = new Dimension(400, 150);
+    Dimension configurationPaneDimension = new Dimension(470, 150);
     configurationPane.setMinimumSize(configurationPaneDimension);
     //configurationPane.setMaximumSize(configurationPaneDimension);
     configurationPane.setPreferredSize(configurationPaneDimension);
@@ -319,6 +325,7 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
     configurationTabbedPane.addTab("Log Filter", filters.getUI());
+    //configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
@@ -594,7 +601,7 @@ public class AutoRepeater implements IMessageEditorController {
     if (!messageIsRequest
         && activatedButton.isSelected()
         && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
-      boolean meetsConditions = conditionsTableModel.checkConditions(toolFlag, messageInfo);
+      boolean meetsConditions = conditionsTableModel.check(toolFlag, messageInfo);
       if (meetsConditions) {
         // Create a set to store each new unique request in
         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();

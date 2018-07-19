@@ -50,7 +50,7 @@ public class Filters {
 
   private FilterTableModel filterTableModel;
   private LogManager logManager;
-  private boolean isWhitelist;
+  private boolean isWhitelist = true;
 
   public Filters(LogManager logManager) {
     filterTableModel = new FilterTableModel();
@@ -71,9 +71,9 @@ public class Filters {
 
   public boolean filter(LogEntry logEntry) {
     if (isWhitelist) {
-      return filterTableModel.checkFilters(logEntry);
+      return filterTableModel.check(logEntry);
     } else {
-      return !filterTableModel.checkFilters(logEntry);
+      return !filterTableModel.check(logEntry);
     }
   }
 
@@ -170,7 +170,7 @@ public class Filters {
             (String) matchRelationshipComboBox.getSelectedItem(),
             matchFilterTextField.getText()
         );
-        filterTableModel.addFilter(newFilter);
+        filterTableModel.add(newFilter);
         filterTableModel.fireTableDataChanged();
       }
       resetFilterDialog();
@@ -183,7 +183,7 @@ public class Filters {
 
     editFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      Filter tempFilter = filterTableModel.getFilter(selectedRow);
+      Filter tempFilter = filterTableModel.get(selectedRow);
 
       booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
       matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
@@ -206,7 +206,7 @@ public class Filters {
         );
         newFilter.setEnabled(tempFilter.isEnabled());
 
-        filterTableModel.updateFilter(selectedRow, newFilter);
+        filterTableModel.update(selectedRow, newFilter);
         filterTableModel.fireTableDataChanged();
       }
       resetFilterDialog();
@@ -219,7 +219,7 @@ public class Filters {
 
     deleteFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      filterTableModel.deleteFilter(selectedRow);
+      filterTableModel.delete(selectedRow);
       filterTableModel.fireTableDataChanged();
     });
 
@@ -261,12 +261,12 @@ public class Filters {
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
     // checkbox didn't trigger a tablemodelupdated action so i'm doing this instead.
     whitelistFilterRadioButton.addActionListener(e -> {
+      setWhitelist(whitelistFilterRadioButton.isSelected());
       logManager.setFilter(this);
-      isWhitelist = true;
     });
     blacklistFilterRadioButton.addActionListener(e -> {
+      setWhitelist(!blacklistFilterRadioButton.isSelected());
       logManager.setFilter(this);
-      isWhitelist = false;
     });
 
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));

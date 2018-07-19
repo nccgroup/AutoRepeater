@@ -21,18 +21,16 @@ public class ConditionTableModel extends AbstractTableModel {
     conditions = new ArrayList<>();
   }
 
-  public void addCondition(Condition newCondition) {
-    conditions.add(newCondition);
-  }
+  public void add(Condition condition) { conditions.add(condition); }
 
-  public void updateCondition(int replacementIndex, Condition newCondition) {
-    if (replacementIndex == 0) {
-      newCondition.setBooleanOperator("");
+  public void update(int index, Condition condition) {
+    if (index == 0) {
+      condition.setBooleanOperator("");
     }
-    conditions.set(replacementIndex, newCondition);
+    conditions.set(index, condition);
   }
 
-  public boolean checkConditions(int toolFlag, IHttpRequestResponse messageInfo) {
+  public boolean check(int toolFlag, IHttpRequestResponse messageInfo) {
     boolean meetsConditions = false;
     if (getConditions().size() == 0) {
       meetsConditions = true;
@@ -60,17 +58,15 @@ public class ConditionTableModel extends AbstractTableModel {
     return conditions;
   }
 
-  public Condition getCondition(int conditionIndex) {
+  public Condition get(int conditionIndex) {
     return conditions.get(conditionIndex);
   }
 
-  public void deleteCondition(int replacementIndex) {
-    if (replacementIndex != 0) {
-      conditions.remove(replacementIndex);
-    }
+  public void delete(int index) {
+    if (index != 0) { conditions.remove(index); }
   }
 
-  public void clearConditions() {
+  public void clear() {
     conditions.clear();
   }
 

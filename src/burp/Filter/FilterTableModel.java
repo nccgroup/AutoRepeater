@@ -1,13 +1,11 @@
 package burp.Filter;
 
-import burp.Conditions.Condition;
-import burp.IHttpRequestResponse;
+import burp.Conditions.ConditionTableModel;
 import burp.Logs.LogEntry;
 import java.util.ArrayList;
-import javax.swing.table.AbstractTableModel;
+import java.util.stream.Collectors;
 
-public class FilterTableModel extends AbstractTableModel {
-  private ArrayList<Filter> filters;
+public class FilterTableModel extends ConditionTableModel {
 
   private final static String[] columnNames = {
       "Enabled",
@@ -18,24 +16,7 @@ public class FilterTableModel extends AbstractTableModel {
       "Match Condition"
   };
 
-
-  // Setting default filters
-  public FilterTableModel() {
-    filters = new ArrayList<>();
-  }
-
-  public void addFilter(Filter filter) {
-    filters.add(filter);
-  }
-
-  public void updateFilter(int replacementIndex, Filter filter) {
-    if (replacementIndex == 0) {
-      filter.setBooleanOperator("");
-    }
-    filters.set(replacementIndex, filter);
-  }
-
-  public boolean checkFilters(LogEntry logEntry) {
+  public boolean check(LogEntry logEntry) {
     boolean meetsFilters = false;
     if (getFilters().size() == 0) {
       meetsFilters = true;
@@ -59,41 +40,16 @@ public class FilterTableModel extends AbstractTableModel {
   }
 
   public ArrayList<Filter> getFilters() {
-    return filters;
+    return getConditions().stream()
+        .map(x -> (Filter)x)
+        .collect(Collectors.toCollection(ArrayList::new));
   }
 
-  public Filter getFilter(int filterIndex) {
-    return filters.get(filterIndex);
-  }
-
-  public void deleteFilter(int index) {
-    if (index != 0) {
-      filters.remove(index);
-    }
-  }
-
-  public void clearFilters() {
-    filters.clear();
-  }
-
-  @Override
-  public int getColumnCount() {
-    return columnNames.length;
-  }
-
-  @Override
-  public int getRowCount() {
-    return filters.size();
-  }
-
-  @Override
-  public String getColumnName(int col) {
-    return columnNames[col];
-  }
+  public Filter get(int index) { return (Filter)super.get(index); }
 
   @Override
   public Object getValueAt(int row, int col) {
-    Filter filter = filters.get(row);
+    Filter filter = get(row);
     switch (col) {
       case 0:
         return filter.isEnabled();
@@ -113,18 +69,8 @@ public class FilterTableModel extends AbstractTableModel {
   }
 
   @Override
-  public Class getColumnClass(int column) {
-    return (getValueAt(0, column).getClass());
-  }
-
-  @Override
-  public boolean isCellEditable(int row, int column) {
-    return (getColumnName(column).equals("Enabled") && row != 0);
-  }
-
-  @Override
   public void setValueAt(Object value, int row, int col) {
-    Filter filter = filters.get(row);
+    Filter filter = get(row);
     switch (col) {
       case 0:
         filter.setEnabled((Boolean) value);
@@ -145,6 +91,6 @@ public class FilterTableModel extends AbstractTableModel {
         filter.setMatchCondition((String) value);
         break;
     }
-    filters.set(row, filter);
+    update(row, filter);
   }
 }
