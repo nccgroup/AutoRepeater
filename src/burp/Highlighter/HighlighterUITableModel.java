@@ -20,6 +20,10 @@ public class HighlighterUITableModel extends AbstractTableModel {
     tableModels.set(index, tableModel);
   }
 
+  public HighlighterTableModel get(int index) {
+    return tableModels.get(index);
+  }
+
   public void remove(int index) {
     tableModels.remove(index);
   }

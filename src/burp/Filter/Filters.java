@@ -50,7 +50,7 @@ public class Filters {
 
   private FilterTableModel filterTableModel;
   private LogManager logManager;
-  private boolean isWhitelist;
+  private boolean isWhitelist = true;
 
   public Filters(LogManager logManager) {
     filterTableModel = new FilterTableModel();

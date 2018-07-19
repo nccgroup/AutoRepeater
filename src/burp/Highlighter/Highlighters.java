@@ -108,34 +108,48 @@ public class Highlighters {
     menuPanel.add(menuScrollPane, c);
 
     addHighlighterButton.addActionListener(l -> {
+      HighlighterTableModel tableModel = new HighlighterTableModel();
       int result = JOptionPane.showConfirmDialog(
           BurpExtender.getParentTabbedPane(),
-          createHighlighterUI(),
+          createHighlighterUI(tableModel),
           "Add Highlighter",
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
       if (result == JOptionPane.OK_OPTION) {
-        highlighterUITableModel.add(new HighlighterTableModel(highlighterTableModel));
+        highlighterUITableModel.add(new HighlighterTableModel(tableModel));
         highlighterUITableModel.fireTableDataChanged();
       }
+    });
+    editHighlighterButton.addActionListener(l -> {
+      HighlighterTableModel tableModel = highlighterUITableModel.get(menuTable.getSelectedRow());
+      int result = JOptionPane.showConfirmDialog(
+          BurpExtender.getParentTabbedPane(),
+          createHighlighterUI(tableModel),
+          "Add Highlighter",
+          JOptionPane.OK_CANCEL_OPTION,
+          JOptionPane.PLAIN_MESSAGE);
+      if (result == JOptionPane.OK_OPTION) {
+        highlighterUITableModel.update(menuTable.getSelectedRow(), new HighlighterTableModel(tableModel));
+        highlighterUITableModel.fireTableDataChanged();
+      }
+    });
+    deleteHighlighterButton.addActionListener(l -> {
+      highlighterUITableModel.remove(menuTable.getSelectedRow());
+      highlighterUITableModel.fireTableDataChanged();
     });
     return menuPanel;
   }
 
   // This is the UI for the highlighter pop up with the table
-  private JPanel createHighlighterUI() {
+  private JPanel createHighlighterUI(HighlighterTableModel highlighterTableModel) {
     GridBagConstraints c;
-
     JPanel menuPanel = new JPanel();
     JButton addHighlighterButton = new JButton("Add");
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
-    highlighterTableModel = new HighlighterTableModel();
+    //highlighterTableModel = new HighlighterTableModel();
     JTable menuTable = new JTable(highlighterTableModel);
-
-    highlighterTableModel.add(new Highlighter("", "Original","URL", "Matches", ""));
-    highlighterTableModel.fireTableDataChanged();
 
     JLabel colorComboBoxLabel = new JLabel("Highlight Color: ");
     JComboBox<String> colorComboBox = new JComboBox<>(Highlighter.COLOR_NAMES);

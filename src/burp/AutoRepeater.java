@@ -325,7 +325,7 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
     configurationTabbedPane.addTab("Log Filter", filters.getUI());
-    configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
+    //configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
     //logEntriesWithoutResponses = new ArrayList<>();
