@@ -1,16 +1,26 @@
 package burp.Highlighter;
 
 import burp.Filter.FilterTableModel;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class HighlighterTableModel extends FilterTableModel{
-  private String color;
+  private String colorName;
   private boolean isEnabled;
 
   public HighlighterTableModel() {
     super();
-    setColor(Highlighter.COLOR_NAMES[0]);
+    setColorName(Highlighter.COLOR_NAMES[0]);
+  }
+
+  public Color getColor() {
+    for (int i = 0 ; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.COLORS[i];
+      }
+    }
+    return Highlighter.COLORS[0];
   }
 
   public ArrayList<Highlighter> getHighlighters() {
@@ -24,20 +34,20 @@ public class HighlighterTableModel extends FilterTableModel{
     for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
       add(highlighter);
     }
-    this.color = highlighterTableModel.getColor();
+    this.colorName = highlighterTableModel.getColorName();
     this.isEnabled = highlighterTableModel.isEnabled();
   }
 
-  public String getColor() { return color; }
+  public String getColorName() { return colorName; }
 
-  public void setColor(String color) {
-    for(String colorName : Highlighter.COLOR_NAMES) {
+  public void setColorName(String colorName) {
+    for(String color : Highlighter.COLOR_NAMES) {
       if (color.equals(colorName)) {
-        this.color = color;
+        this.colorName = colorName;
         return;
       }
     }
-    this.color = Highlighter.COLOR_NAMES[0];
+    this.colorName = Highlighter.COLOR_NAMES[0];
   }
 
   public Highlighter get(int index) { return (Highlighter)super.get(index); }

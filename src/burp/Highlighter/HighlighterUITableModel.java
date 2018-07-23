@@ -12,6 +12,8 @@ public class HighlighterUITableModel extends AbstractTableModel {
     tableModels = new ArrayList<>();
   }
 
+  public ArrayList<HighlighterTableModel> getTableModels() { return tableModels; }
+
   public void add(HighlighterTableModel tableModel) {
     tableModels.add(tableModel);
   }
@@ -63,7 +65,7 @@ public class HighlighterUITableModel extends AbstractTableModel {
       case 0:
         return tableModel.isEnabled();
       case 1:
-        return tableModel.getColor();
+        return tableModel.getColorName();
       default:
         throw new IllegalStateException("getValueAt not defined for "+Integer.toString(col));
     }

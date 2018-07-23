@@ -32,6 +32,7 @@ import java.util.HashSet;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 public class AutoRepeater implements IMessageEditorController {
@@ -325,11 +326,31 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
     configurationTabbedPane.addTab("Log Filter", filters.getUI());
-    //configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
+    configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
-    //logEntriesWithoutResponses = new ArrayList<>();
     logTable = new LogTable(logManager.getLogTableModel());
+    logTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(
+          JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c =
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        c.setBackground(
+            logManager.getLogTableModel().getLogEntry(
+                logTable.convertRowIndexToModel(row)).getBackgroundColor());
+
+        //DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        //leftRenderer.setHorizontalAlignment(JLabel.LEFT);
+        //for (int i = 0; i < 8; i++) {
+        //  logTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
+        //}
+        //c.setBackground(Color.RED);
+        //System.out.println(logTableModel.getLogEntry(row).getBackgroundColor().toString());
+        return c;
+      }
+    });
+
     logTable.setAutoCreateRowSorter(true);
 
     logTable.getColumnModel().getColumn(0).setPreferredWidth(5);
@@ -342,11 +363,6 @@ public class AutoRepeater implements IMessageEditorController {
     logTable.getColumnModel().getColumn(7).setPreferredWidth(30);
 
     // Make every cell left aligned
-    DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
-    leftRenderer.setHorizontalAlignment(JLabel.LEFT);
-    for (int i = 0; i < 8; i++) {
-      logTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
-    }
 
     JScrollPane logTableScrollPane = new JScrollPane(logTable);
     logTableScrollPane.setMinimumSize(configurationPaneDimension);
@@ -634,9 +650,9 @@ public class AutoRepeater implements IMessageEditorController {
                 toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+            highlighters.highlight(newLogEntry);
             logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);
-            //BurpExtender.highlightTab();
           }
         }
       }

@@ -163,7 +163,6 @@ public class Conditions {
             matchConditionTextField.getText()
         );
         newCondition.setEnabled(tempCondition.isEnabled());
-
         conditionTableModel.update(selectedRow, newCondition);
         conditionTableModel.fireTableDataChanged();
       }
@@ -215,6 +214,4 @@ public class Conditions {
     c.gridx = 1;
     conditionsPanel.add(conditionScrollPane, c);
   }
-
 }
-

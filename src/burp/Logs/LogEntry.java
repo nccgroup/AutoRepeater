@@ -4,6 +4,7 @@ import burp.BurpExtender;
 import burp.IHttpRequestResponsePersisted;
 import burp.IRequestInfo;
 import burp.IResponseInfo;
+import java.awt.Color;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -34,9 +35,23 @@ public class LogEntry {
 
   private long requestSentTime;
 
+  private Color backgroundColor = Color.RED;
+  private Color fontColor = Color.BLACK;
+
   public long getRequestResponseId() {
     return requestResponseId;
   }
+
+  public void setBackgroundColor(Color backgroundColor) {
+    this.backgroundColor = backgroundColor;
+  }
+
+  public void setFontColor(Color fontColor) {
+    this.fontColor = fontColor;
+  }
+
+  public Color getBackgroundColor() { return this.backgroundColor; }
+  public Color getFontColor() { return this.backgroundColor; }
 
   public void setRequestResponseId(long requestResponseId) {
     this.requestResponseId = requestResponseId;
