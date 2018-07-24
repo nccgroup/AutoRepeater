@@ -1,9 +1,11 @@
 package burp.Highlighter;
 
 import burp.AutoRepeater;
+import burp.AutoRepeater.LogTable;
 import burp.BurpExtender;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.BoxLayout;
@@ -47,10 +49,12 @@ public class Highlighters {
   private HighlighterTableModel highlighterTableModel;
   private HighlighterUITableModel highlighterUITableModel;
   private LogManager logManager;
+  private LogTable logTable;
 
-  public Highlighters(LogManager logManager) {
+  public Highlighters(LogManager logManager, LogTable logTable) {
     highlighterUITableModel = new HighlighterUITableModel();
     this.logManager = logManager;
+    this.logTable = logTable;
     highlightsPanel = createMenuUI();
   }
 
@@ -61,17 +65,19 @@ public class Highlighters {
     for (LogEntry logEntry : logManager.getLogTableModel().getLog()) {
       highlight(logEntry);
     }
+    logTable.repaint();
   }
 
   public void highlight(LogEntry logEntry) {
+    logEntry.setBackgroundColor(Color.WHITE);
     for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
       for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
-        if (highlighter.checkCondition(logEntry)) {
-          System.out.println("Setting color to "+highlighter.getColor());
+        if (highlighter.isEnabled() && highlighter.checkCondition(logEntry)) {
           logEntry.setBackgroundColor(highlighterTableModel.getColor());
         }
       }
     }
+    logTable.repaint();
   }
 
   private JPanel createMenuUI() {
@@ -319,7 +325,7 @@ public class Highlighters {
     originalOrModifiedLabel = new JLabel("Match Original Or Modified");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchHighlighterLabel = new JLabel("Match Filter: ");
+    matchHighlighterLabel = new JLabel("Match Condition: ");
 
     JPanel outputPanel = new JPanel();
     outputPanel.setLayout(new GridBagLayout());

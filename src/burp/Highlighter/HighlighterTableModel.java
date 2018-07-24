@@ -40,6 +40,11 @@ public class HighlighterTableModel extends FilterTableModel{
 
   public String getColorName() { return colorName; }
 
+  @Override
+  public void delete(int index) {
+    getConditions().remove(index);
+  }
+
   public void setColorName(String colorName) {
     for(String color : Highlighter.COLOR_NAMES) {
       if (color.equals(colorName)) {
@@ -58,5 +63,10 @@ public class HighlighterTableModel extends FilterTableModel{
 
   public void setEnabled(boolean enabled) {
     isEnabled = enabled;
+  }
+
+  @Override
+  public boolean isCellEditable(int row, int column) {
+    return (getColumnName(column).equals("Enabled"));
   }
 }

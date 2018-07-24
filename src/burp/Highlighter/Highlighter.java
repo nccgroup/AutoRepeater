@@ -7,7 +7,6 @@ public class Highlighter extends Filter {
   private int color;
 
   final static Color[] COLORS = {
-    Color.WHITE,
     Color.RED,
     Color.ORANGE,
     Color.YELLOW,
@@ -15,12 +14,10 @@ public class Highlighter extends Filter {
     Color.CYAN,
     Color.PINK,
     Color.MAGENTA,
-    Color.GRAY,
-    Color.BLACK
+    Color.GRAY
   };
 
   final static String[] COLOR_NAMES = {
-      "WHITE",
       "RED",
       "ORANGE",
       "YELLOW",
@@ -28,8 +25,7 @@ public class Highlighter extends Filter {
       "CYAN",
       "PINK",
       "MAGENTA",
-      "GRAY",
-      "BLACK"
+      "GRAY"
   };
 
   public static Color getColorFromName(String colorName) {

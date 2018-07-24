@@ -32,13 +32,12 @@ import java.util.HashSet;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 public class AutoRepeater implements IMessageEditorController {
 
   // UI Component Dimensions
-  public static final Dimension dialogDimension = new Dimension(400, 140);
+  public static final Dimension dialogDimension = new Dimension(450, 140);
   public static final Dimension comboBoxDimension = new Dimension(250, 20);
   public static final Dimension textFieldDimension = new Dimension(250, 25);
   public static final Dimension buttonDimension = new Dimension(75, 20);
@@ -142,9 +141,10 @@ public class AutoRepeater implements IMessageEditorController {
     baseReplacements = new Replacements();
     baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
     logManager = new LogManager();
+    logTable = new LogTable(logManager.getLogTableModel());
     filters = new Filters(logManager);
     filterTableModel = filters.getFilterTableModel();
-    highlighters = new Highlighters(logManager);
+    highlighters = new Highlighters(logManager, logTable);
     highlighterTableModel = highlighters.getHighlighterTableModel();
     createUI();
     setDefaultState();
@@ -329,7 +329,6 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
-    logTable = new LogTable(logManager.getLogTableModel());
     logTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
       @Override
       public Component getTableCellRendererComponent(
@@ -650,6 +649,7 @@ public class AutoRepeater implements IMessageEditorController {
                 toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+            // Highlight the rows
             highlighters.highlight(newLogEntry);
             logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);

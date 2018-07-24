@@ -23,7 +23,7 @@ import javax.swing.JTextField;
 public class Filters {
 
   // Filters UI
-  JPanel filtersPanel;
+  private JPanel filtersPanel;
   private JPanel filterPanel;
   private JScrollPane filterScrollPane;
   private JRadioButton whitelistFilterRadioButton;
@@ -120,7 +120,7 @@ public class Filters {
     originalOrModifiedLabel = new JLabel("Match Original Or Modified");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchFilterLabel = new JLabel("Match Filter: ");
+    matchFilterLabel = new JLabel("Match Condition: ");
 
     c.gridx = 0;
     c.gridy = 0;
