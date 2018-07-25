@@ -23,12 +23,12 @@ import javax.swing.JTextField;
 public class Highlighters {
   // Highlighters UI
   private JPanel highlightsPanel;
-  private JPanel highlightFilterPanel;
-  private JScrollPane highlightFilterScrollPane;
-  private JTable highlightFilterTable;
-  private JButton addHighlighterButton;
-  private JButton editHighlighterButton;
-  private JButton deleteHighlighterButton;
+  //private JPanel highlightFilterPanel;
+  //private JScrollPane highlightFilterScrollPane;
+  //private JTable highlightFilterTable;
+  //private JButton addHighlighterButton;
+  //private JButton editHighlighterButton;
+  //private JButton deleteHighlighterButton;
 
   // Highlighters Popup UI
   private JComboBox<String> booleanOperatorComboBox;
@@ -38,15 +38,14 @@ public class Highlighters {
   private JTextField matchHighlighterTextField;
 
   // Highlighters Menu UI
-  private JLabel colorLabel;
-
   private JLabel booleanOperatorLabel;
   private JLabel originalOrModifiedLabel;
   private JLabel matchTypeLabel;
   private JLabel matchRelationshipLabel;
   private JLabel matchHighlighterLabel;
+  private JTable highlighterTable;
 
-  private HighlighterTableModel highlighterTableModel;
+  //private HighlighterTableModel highlighterTableModel;
   private HighlighterUITableModel highlighterUITableModel;
   private LogManager logManager;
   private LogTable logTable;
@@ -58,7 +57,7 @@ public class Highlighters {
     highlightsPanel = createMenuUI();
   }
 
-  public HighlighterTableModel getHighlighterTableModel() { return highlighterTableModel; }
+  public HighlighterUITableModel getHighlighterUITableModel() { return highlighterUITableModel; }
   public JPanel getUI() { return highlightsPanel; }
 
   public void highlight() {
@@ -71,9 +70,11 @@ public class Highlighters {
   public void highlight(LogEntry logEntry) {
     logEntry.setBackgroundColor(Color.WHITE);
     for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
-      for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
-        if (highlighter.isEnabled() && highlighter.checkCondition(logEntry)) {
-          logEntry.setBackgroundColor(highlighterTableModel.getColor());
+      if (highlighterTableModel.isEnabled()) {
+        for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
+          if (highlighter.checkCondition(logEntry)) {
+            logEntry.setBackgroundColor(highlighterTableModel.getColor());
+          }
         }
       }
     }
@@ -136,9 +137,13 @@ public class Highlighters {
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
       if (result == JOptionPane.OK_OPTION) {
-        highlighterUITableModel.add(new HighlighterTableModel(tableModel));
-        highlight();
-        highlighterUITableModel.fireTableDataChanged();
+        HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
+        if(tempTableModel.getConditions().size() > 0) {
+          tempTableModel.setEnabled(true);
+          highlighterUITableModel.add(tempTableModel);
+          highlight();
+          highlighterUITableModel.fireTableDataChanged();
+        }
       }
     });
     editHighlighterButton.addActionListener(l -> {
@@ -150,9 +155,12 @@ public class Highlighters {
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
       if (result == JOptionPane.OK_OPTION) {
-        highlighterUITableModel.update(menuTable.getSelectedRow(), new HighlighterTableModel(tableModel));
-        highlight();
-        highlighterUITableModel.fireTableDataChanged();
+        HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
+        if(tempTableModel.getConditions().size() > 0) {
+          highlighterUITableModel.update(menuTable.getSelectedRow(), tempTableModel);
+          highlight();
+          highlighterUITableModel.fireTableDataChanged();
+        }
       }
     });
     deleteHighlighterButton.addActionListener(l -> {
@@ -171,10 +179,11 @@ public class Highlighters {
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
-    JTable menuTable = new JTable(highlighterTableModel);
+    highlighterTable = new JTable(highlighterTableModel);
 
     JLabel colorComboBoxLabel = new JLabel("Highlight Color: ");
     JComboBox<String> colorComboBox = new JComboBox<>(Highlighter.COLOR_NAMES);
+    colorComboBox.setSelectedItem(highlighterTableModel.getColorName());
     colorComboBox.addActionListener(e -> highlighterTableModel.setColorName((String)colorComboBox.getSelectedItem()));
     colorComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
       DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer();
@@ -187,9 +196,6 @@ public class Highlighters {
       }
       return label;
     });
-    //colorComboBox.addActionListener(l ->
-    //    highlighterUITableModel.get(
-    //        menuTable.getSelectedRow()).setColor((String)));
     colorComboBox.setPreferredSize(AutoRepeater.comboBoxDimension);
     colorComboBox.setMinimumSize(AutoRepeater.comboBoxDimension);
     colorComboBox.setMaximumSize(AutoRepeater.comboBoxDimension);
@@ -224,7 +230,7 @@ public class Highlighters {
     buttonsPanel.add(editHighlighterButton, c);
     buttonsPanel.add(deleteHighlighterButton, c);
 
-    JScrollPane menuScrollPane = new JScrollPane(menuTable);
+    JScrollPane menuScrollPane = new JScrollPane(highlighterTable);
 
     // Panel containing filter options
     menuPanel.setLayout(new GridBagLayout());
@@ -252,7 +258,7 @@ public class Highlighters {
     addHighlighterButton.addActionListener(l -> {
       int result = JOptionPane.showConfirmDialog(
           BurpExtender.getParentTabbedPane(),
-          createHighlightEditorUI(),
+          createHighlightEditorUI(highlighterTableModel),
           "Edit Highlighter",
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
@@ -273,7 +279,7 @@ public class Highlighters {
     editHighlighterButton.addActionListener(l -> {
       int result = JOptionPane.showConfirmDialog(
           BurpExtender.getParentTabbedPane(),
-          createHighlightEditorUI(),
+          createHighlightEditorUI(highlighterTableModel),
           "Edit Highlighter",
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
@@ -286,18 +292,18 @@ public class Highlighters {
             matchHighlighterTextField.getText()
         );
         newHighlighter.setEnabled(newHighlighter.isEnabled());
-        highlighterTableModel.update(menuTable.getSelectedRow(), newHighlighter);
+        highlighterTableModel.update(highlighterTable.getSelectedRow(), newHighlighter);
         highlighterTableModel.fireTableDataChanged();
       }
     });
     deleteHighlighterButton.addActionListener(l -> {
-      highlighterTableModel.delete(menuTable.getSelectedRow());
+      highlighterTableModel.delete(highlighterTable.getSelectedRow());
       highlighterTableModel.fireTableDataChanged();
     });
     return outputPanel;
   }
 
-  public JPanel createHighlightEditorUI() {
+  public JPanel createHighlightEditorUI(HighlighterTableModel highlighterTableModel) {
     booleanOperatorComboBox = new JComboBox<>(Highlighter.BOOLEAN_OPERATOR_OPTIONS);
     originalOrModifiedComboBox = new JComboBox<>(Highlighter.ORIGINAL_OR_MODIFIED);
     matchTypeComboBox = new JComboBox<>(Highlighter.MATCH_TYPE_OPTIONS);
@@ -320,9 +326,18 @@ public class Highlighters {
           (String) matchTypeComboBox.getSelectedItem()));
     });
 
-    colorLabel = new JLabel("Highlight Color: ");
+    if (highlighterTable.getSelectedRow() != -1) {
+      Highlighter tempHighlighter = highlighterTableModel.getHighlighters()
+          .get(highlighterTable.getSelectedRow());
+      booleanOperatorComboBox.setSelectedItem(tempHighlighter.getBooleanOperator());
+      originalOrModifiedComboBox.setSelectedItem(tempHighlighter.getOriginalOrModified());
+      matchTypeComboBox.setSelectedItem(tempHighlighter.getMatchType());
+      matchRelationshipComboBox.setSelectedItem(tempHighlighter.getMatchRelationship());
+      matchHighlighterTextField.setText(tempHighlighter.getMatchCondition());
+    }
+
     booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    originalOrModifiedLabel = new JLabel("Match Original Or Modified");
+    originalOrModifiedLabel = new JLabel("Match Original Or Modified: ");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
     matchHighlighterLabel = new JLabel("Match Condition: ");

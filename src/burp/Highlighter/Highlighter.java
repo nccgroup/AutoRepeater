@@ -7,14 +7,15 @@ public class Highlighter extends Filter {
   private int color;
 
   final static Color[] COLORS = {
-    Color.RED,
-    Color.ORANGE,
-    Color.YELLOW,
-    Color.GREEN,
-    Color.CYAN,
-    Color.PINK,
-    Color.MAGENTA,
-    Color.GRAY
+      new Color(0xFB6063),
+      new Color(0xFFC562),
+      new Color(0xFDFF5F),
+      new Color(0x60FE62),
+      new Color(0x64FFFF),
+      new Color(0x6262FF),
+      new Color(0xFFC6CC),
+      new Color(0xFE63FD) ,
+      new Color(0xB3B5B2),
   };
 
   final static String[] COLOR_NAMES = {
@@ -23,6 +24,7 @@ public class Highlighter extends Filter {
       "YELLOW",
       "GREEN",
       "CYAN",
+      "PURPLE",
       "PINK",
       "MAGENTA",
       "GRAY"

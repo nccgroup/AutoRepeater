@@ -8,6 +8,7 @@ import burp.Filter.Filter;
 import burp.Filter.FilterTableModel;
 import burp.Filter.Filters;
 import burp.Highlighter.HighlighterTableModel;
+import burp.Highlighter.HighlighterUITableModel;
 import burp.Highlighter.Highlighters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
@@ -128,7 +129,7 @@ public class AutoRepeater implements IMessageEditorController {
   private FilterTableModel filterTableModel;
 
   private Highlighters highlighters;
-  private HighlighterTableModel highlighterTableModel;
+  private HighlighterUITableModel highlighterUITableModel;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
@@ -145,7 +146,7 @@ public class AutoRepeater implements IMessageEditorController {
     filters = new Filters(logManager);
     filterTableModel = filters.getFilterTableModel();
     highlighters = new Highlighters(logManager, logTable);
-    highlighterTableModel = highlighters.getHighlighterTableModel();
+    highlighterUITableModel = highlighters.getHighlighterUITableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
@@ -338,6 +339,9 @@ public class AutoRepeater implements IMessageEditorController {
         c.setBackground(
             logManager.getLogTableModel().getLogEntry(
                 logTable.convertRowIndexToModel(row)).getBackgroundColor());
+        if(isSelected) {
+          c.setBackground(c.getBackground().darker());
+        }
 
         //DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         //leftRenderer.setHorizontalAlignment(JLabel.LEFT);

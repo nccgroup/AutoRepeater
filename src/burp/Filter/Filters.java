@@ -117,7 +117,7 @@ public class Filters {
     });
 
     booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    originalOrModifiedLabel = new JLabel("Match Original Or Modified");
+    originalOrModifiedLabel = new JLabel("Match Original Or Modified: ");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
     matchFilterLabel = new JLabel("Match Condition: ");
