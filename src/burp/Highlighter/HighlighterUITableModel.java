@@ -51,6 +51,7 @@ public class HighlighterUITableModel extends AbstractTableModel {
         break;
     }
     tableModels.set(row, tableModel);
+    fireTableCellUpdated(row, col);
   }
 
   @Override

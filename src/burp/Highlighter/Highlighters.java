@@ -23,12 +23,6 @@ import javax.swing.JTextField;
 public class Highlighters {
   // Highlighters UI
   private JPanel highlightsPanel;
-  //private JPanel highlightFilterPanel;
-  //private JScrollPane highlightFilterScrollPane;
-  //private JTable highlightFilterTable;
-  //private JButton addHighlighterButton;
-  //private JButton editHighlighterButton;
-  //private JButton deleteHighlighterButton;
 
   // Highlighters Popup UI
   private JComboBox<String> booleanOperatorComboBox;
@@ -45,7 +39,6 @@ public class Highlighters {
   private JLabel matchHighlighterLabel;
   private JTable highlighterTable;
 
-  //private HighlighterTableModel highlighterTableModel;
   private HighlighterUITableModel highlighterUITableModel;
   private LogManager logManager;
   private LogTable logTable;
@@ -68,12 +61,13 @@ public class Highlighters {
   }
 
   public void highlight(LogEntry logEntry) {
-    logEntry.setBackgroundColor(Color.WHITE);
+    logEntry.setBackgroundColor(Highlighter.COLORS[0], Highlighter.SELECTED_COLORS[0]);
     for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
       if (highlighterTableModel.isEnabled()) {
         for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
           if (highlighter.checkCondition(logEntry)) {
-            logEntry.setBackgroundColor(highlighterTableModel.getColor());
+            logEntry.setBackgroundColor(
+                highlighterTableModel.getColor(), highlighterTableModel.getSelectedColor());
           }
         }
       }
@@ -83,14 +77,19 @@ public class Highlighters {
 
   private JPanel createMenuUI() {
     GridBagConstraints c;
-
     JPanel menuPanel = new JPanel();
     JButton addHighlighterButton = new JButton("Add");
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
     JTable menuTable = new JTable(highlighterUITableModel);
-    highlighterUITableModel.addTableModelListener(l -> highlight());
+
+    highlighterUITableModel.addTableModelListener(e -> {
+      if (e.getColumn() == 0) {
+        BurpExtender.getCallbacks().printOutput("Update triggered");
+        highlight();
+      }
+    });
 
     addHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);

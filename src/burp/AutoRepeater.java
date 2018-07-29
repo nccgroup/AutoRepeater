@@ -340,16 +340,10 @@ public class AutoRepeater implements IMessageEditorController {
             logManager.getLogTableModel().getLogEntry(
                 logTable.convertRowIndexToModel(row)).getBackgroundColor());
         if(isSelected) {
-          c.setBackground(c.getBackground().darker());
+          c.setBackground(
+              logManager.getLogTableModel().getLogEntry(
+                  logTable.convertRowIndexToModel(row)).getSelectedBackgroundColor());
         }
-
-        //DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
-        //leftRenderer.setHorizontalAlignment(JLabel.LEFT);
-        //for (int i = 0; i < 8; i++) {
-        //  logTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
-        //}
-        //c.setBackground(Color.RED);
-        //System.out.println(logTableModel.getLogEntry(row).getBackgroundColor().toString());
         return c;
       }
     });

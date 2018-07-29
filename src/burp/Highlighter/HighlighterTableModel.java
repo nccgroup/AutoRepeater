@@ -1,9 +1,9 @@
 package burp.Highlighter;
 
-import burp.Filter.FilterTableModel;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
+    import burp.Filter.FilterTableModel;
+    import java.awt.Color;
+    import java.util.ArrayList;
+    import java.util.stream.Collectors;
 
 public class HighlighterTableModel extends FilterTableModel{
   private String colorName;
@@ -22,6 +22,16 @@ public class HighlighterTableModel extends FilterTableModel{
     }
     return Highlighter.COLORS[0];
   }
+
+  public Color getSelectedColor() {
+    for (int i = 0 ; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.SELECTED_COLORS[i];
+      }
+    }
+    return Highlighter.SELECTED_COLORS[0];
+  }
+
 
   public ArrayList<Highlighter> getHighlighters() {
     return getConditions().stream()

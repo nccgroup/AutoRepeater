@@ -1,6 +1,7 @@
 package burp.Logs;
 
 import burp.BurpExtender;
+import burp.Highlighter.Highlighter;
 import burp.IHttpRequestResponsePersisted;
 import burp.IRequestInfo;
 import burp.IResponseInfo;
@@ -35,20 +36,25 @@ public class LogEntry {
 
   private long requestSentTime;
 
-  private Color backgroundColor = Color.RED;
-  private Color fontColor = Color.BLACK;
+  private Color backgroundColor;
+  private Color selectedBackgroundColor;
 
   public long getRequestResponseId() {
     return requestResponseId;
   }
 
-  public void setBackgroundColor(Color backgroundColor) {
-    this.backgroundColor = backgroundColor;
+  public Color getSelectedBackgroundColor() {
+    return this.selectedBackgroundColor;
   }
 
-  public void setFontColor(Color fontColor) {
-    this.fontColor = fontColor;
+  public void setBackgroundColor(Color backgroundColor, Color selectedBackgroundColor) {
+    this.backgroundColor = backgroundColor;
+    this.selectedBackgroundColor = selectedBackgroundColor;
   }
+
+  //public void setFontColor(Color fontColor) {
+  //  this.fontColor = fontColor;
+  //}
 
   public Color getBackgroundColor() { return this.backgroundColor; }
   public Color getFontColor() { return this.backgroundColor; }
@@ -231,6 +237,9 @@ public class LogEntry {
     this.toolFlag = toolFlag;
 
     this.requestSentTime = System.currentTimeMillis();
+
+    backgroundColor = Highlighter.COLORS[0];
+    selectedBackgroundColor = Highlighter.SELECTED_COLORS[0];
   }
 
   public int getToolFlag() {

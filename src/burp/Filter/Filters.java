@@ -259,33 +259,16 @@ public class Filters {
     filtersPanel.add(filterScrollPane, c);
 
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
-    // checkbox didn't trigger a tablemodelupdated action so i'm doing this instead.
-    whitelistFilterRadioButton.addActionListener(e -> {
-      setWhitelist(whitelistFilterRadioButton.isSelected());
-      logManager.setFilter(this);
-    });
-    blacklistFilterRadioButton.addActionListener(e -> {
-      setWhitelist(!blacklistFilterRadioButton.isSelected());
-      logManager.setFilter(this);
-    });
+    //whitelistFilterRadioButton.addActionListener(e -> {
+    //  setWhitelist(whitelistFilterRadioButton.isSelected());
+    //  logManager.setFilter(this);
+    //});
+    //blacklistFilterRadioButton.addActionListener(e -> {
+    //  setWhitelist(!blacklistFilterRadioButton.isSelected());
+    //  logManager.setFilter(this);
+    //});
 
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
-    filterTable.addMouseListener(new MouseListener() {
-      @Override
-      public void mouseClicked(MouseEvent e) { logManager.setFilter(Filters.this); }
-
-      @Override
-      public void mousePressed(MouseEvent e) { logManager.setFilter(Filters.this); }
-
-      @Override
-      public void mouseReleased(MouseEvent e) { logManager.setFilter(Filters.this);}
-
-      @Override
-      public void mouseEntered(MouseEvent e) {}
-
-      @Override
-      public void mouseExited(MouseEvent e) {}
-    });
   }
 
   public void setWhitelist(boolean whitelist) {

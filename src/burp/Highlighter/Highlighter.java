@@ -6,7 +6,8 @@ import java.awt.Color;
 public class Highlighter extends Filter {
   private int color;
 
-  final static Color[] COLORS = {
+  public final static Color[] COLORS = {
+      new Color(0xFFFFFF),
       new Color(0xFB6063),
       new Color(0xFFC562),
       new Color(0xFDFF5F),
@@ -18,7 +19,21 @@ public class Highlighter extends Filter {
       new Color(0xB3B5B2),
   };
 
-  final static String[] COLOR_NAMES = {
+  public final static Color[] SELECTED_COLORS = {
+      new Color(0xFFC864),
+      new Color(0xDF4444),
+      new Color(0xDFa844),
+      new Color(0xDFDF44),
+      new Color(0x44DF44),
+      new Color(0x44DFDF),
+      new Color(0x4444DF),
+      new Color(0xDFA8A8),
+      new Color(0xDF44DF) ,
+      new Color(0x949494),
+  };
+
+  public final static String[] COLOR_NAMES = {
+      "WHITE",
       "RED",
       "ORANGE",
       "YELLOW",

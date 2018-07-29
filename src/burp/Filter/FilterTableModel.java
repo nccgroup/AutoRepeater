@@ -104,5 +104,6 @@ public class FilterTableModel extends ConditionTableModel {
         throw new IllegalStateException("setValueAt not defined for "+Integer.toString(col));
     }
     update(row, filter);
+    fireTableCellUpdated(row, col);
   }
 }
