@@ -18,13 +18,27 @@ public class HighlighterTableModel extends FilterTableModel{
     setColorName(Highlighter.COLOR_NAMES[0]);
   }
 
-  //TODO: These are both bad. Why am i not just setting the value when the name is set to reduce the lookups.
   public Color getColor() {
     return backgroundColor;
   }
 
   public Color getSelectedColor() {
     return selectedBackgroundColor;
+  }
+
+  public void add(Highlighter highlighter) {
+    super.add(highlighter);
+    // Clear out the boolean if it's the first entry
+    if (getConditions().get(0).equals(highlighter)) {
+      getConditions().get(0).setBooleanOperator("");
+    }
+  }
+
+  @Override
+  public void remove(int index) {
+    getConditions().remove(index);
+    // Clear out the boolean if it's the first entry
+    getConditions().get(0).setBooleanOperator("");
   }
 
   public ArrayList<Highlighter> getHighlighters() {
@@ -44,17 +58,13 @@ public class HighlighterTableModel extends FilterTableModel{
 
   public String getColorName() { return colorName; }
 
-  @Override
-  public void delete(int index) {
-    getConditions().remove(index);
-  }
-
   public void setColorName(String colorName) {
     for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
       if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
         this.colorName = colorName;
         backgroundColor = Highlighter.COLORS[i];
         selectedBackgroundColor = Highlighter.SELECTED_COLORS[i];
+        return;
       }
     }
     this.colorName = Highlighter.COLOR_NAMES[0];

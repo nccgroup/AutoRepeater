@@ -5,7 +5,6 @@ import burp.AutoRepeater.LogTable;
 import burp.BurpExtender;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.BoxLayout;
@@ -298,7 +297,7 @@ public class Highlighters {
     });
     deleteHighlighterButton.addActionListener(l -> {
       if (highlighterTable.getSelectedRow() != -1 ) {
-        highlighterTableModel.delete(highlighterTable.getSelectedRow());
+        highlighterTableModel.remove(highlighterTable.getSelectedRow());
         highlighterTableModel.fireTableDataChanged();
       }
     });

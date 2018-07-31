@@ -6,8 +6,6 @@ import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -222,7 +220,7 @@ public class Filters {
     deleteFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
       if (selectedRow != -1) {
-        filterTableModel.delete(selectedRow);
+        filterTableModel.remove(selectedRow);
         filterTableModel.fireTableDataChanged();
       }
     });

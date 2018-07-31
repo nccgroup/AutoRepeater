@@ -62,7 +62,7 @@ public class ConditionTableModel extends AbstractTableModel {
     return conditions.get(conditionIndex);
   }
 
-  public void delete(int index) {
+  public void remove(int index) {
     if (index != 0) { conditions.remove(index); }
   }
 

@@ -179,7 +179,7 @@ public class Conditions {
     deleteConditionButton.addActionListener(e -> {
       int selectedRow = conditionTable.getSelectedRow();
       if (selectedRow != -1) {
-        conditionTableModel.delete(selectedRow);
+        conditionTableModel.remove(selectedRow);
         conditionTableModel.fireTableDataChanged();
       }
     });
