@@ -8,30 +8,24 @@ package burp.Highlighter;
 public class HighlighterTableModel extends FilterTableModel{
   private String colorName;
   private boolean isEnabled;
+  private Color backgroundColor;
+  private Color selectedBackgroundColor;
 
   public HighlighterTableModel() {
     super();
+    backgroundColor = Highlighter.COLORS[0];
+    selectedBackgroundColor = Highlighter.SELECTED_COLORS[0];
     setColorName(Highlighter.COLOR_NAMES[0]);
   }
 
+  //TODO: These are both bad. Why am i not just setting the value when the name is set to reduce the lookups.
   public Color getColor() {
-    for (int i = 0 ; i < Highlighter.COLOR_NAMES.length; i++) {
-      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
-        return Highlighter.COLORS[i];
-      }
-    }
-    return Highlighter.COLORS[0];
+    return backgroundColor;
   }
 
   public Color getSelectedColor() {
-    for (int i = 0 ; i < Highlighter.COLOR_NAMES.length; i++) {
-      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
-        return Highlighter.SELECTED_COLORS[i];
-      }
-    }
-    return Highlighter.SELECTED_COLORS[0];
+    return selectedBackgroundColor;
   }
-
 
   public ArrayList<Highlighter> getHighlighters() {
     return getConditions().stream()
@@ -56,13 +50,16 @@ public class HighlighterTableModel extends FilterTableModel{
   }
 
   public void setColorName(String colorName) {
-    for(String color : Highlighter.COLOR_NAMES) {
-      if (color.equals(colorName)) {
+    for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
         this.colorName = colorName;
-        return;
+        backgroundColor = Highlighter.COLORS[i];
+        selectedBackgroundColor = Highlighter.SELECTED_COLORS[i];
       }
     }
     this.colorName = Highlighter.COLOR_NAMES[0];
+    backgroundColor = Highlighter.COLORS[0];
+    selectedBackgroundColor = Highlighter.SELECTED_COLORS[0];
   }
 
   public Highlighter get(int index) { return (Highlighter)super.get(index); }

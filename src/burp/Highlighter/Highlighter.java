@@ -4,8 +4,6 @@ import burp.Filter.Filter;
 import java.awt.Color;
 
 public class Highlighter extends Filter {
-  private int color;
-
   public final static Color[] COLORS = {
       new Color(0xFFFFFF),
       new Color(0xFB6063),
@@ -45,15 +43,6 @@ public class Highlighter extends Filter {
       "GRAY"
   };
 
-  public static Color getColorFromName(String colorName) {
-    for (int i = 0; i < COLOR_NAMES.length; i++) {
-      if (COLOR_NAMES[i].equals(colorName)) {
-        return COLORS[i];
-      }
-    }
-    return COLORS[0];
-  }
-
   public Highlighter(
       String booleanOperator,
       String originalOrModified,
@@ -72,16 +61,4 @@ public class Highlighter extends Filter {
       String matchCondition) {
     this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
   }
-
-  public Color getColor() { return COLORS[color]; }
-  public int getColorIndex() { return color; }
-
-  public void setColor(int i) {
-    if (i < 0 || i >= COLORS.length)  {
-      color = 0;
-    } else {
-      color = i;
-    }
-  }
-
 }

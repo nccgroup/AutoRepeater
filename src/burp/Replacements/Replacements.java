@@ -147,34 +147,36 @@ public class Replacements {
     // Edit selected Replacement
     editReplacementButton.addActionListener(e -> {
       int selectedRow = replacementTable.getSelectedRow();
-      Replacement tempReplacement = replacementTableModel.getReplacement(selectedRow);
+      if (selectedRow != -1) {
+        Replacement tempReplacement = replacementTableModel.getReplacement(selectedRow);
 
-      replacementTypeComboBox.setSelectedItem(tempReplacement.getType());
-      replacementMatchTextField.setText(tempReplacement.getMatch());
-      replacementReplaceTextField.setText(tempReplacement.getReplace());
-      replacementCountComboBox.setSelectedItem(tempReplacement.getWhich());
-      replacementCommentTextField.setText(tempReplacement.getComment());
-      replacementIsRegexCheckBox.setSelected(tempReplacement.isRegexMatch());
+        replacementTypeComboBox.setSelectedItem(tempReplacement.getType());
+        replacementMatchTextField.setText(tempReplacement.getMatch());
+        replacementReplaceTextField.setText(tempReplacement.getReplace());
+        replacementCountComboBox.setSelectedItem(tempReplacement.getWhich());
+        replacementCommentTextField.setText(tempReplacement.getComment());
+        replacementIsRegexCheckBox.setSelected(tempReplacement.isRegexMatch());
 
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          replacementPanel,
-          "Edit Replacement",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Replacement newReplacement = new Replacement(
-            (String) replacementTypeComboBox.getSelectedItem(),
-            replacementMatchTextField.getText(),
-            replacementReplaceTextField.getText(),
-            (String) replacementCountComboBox.getSelectedItem(),
-            replacementCommentTextField.getText(),
-            replacementIsRegexCheckBox.isSelected()
-        );
-        replacementTableModel.updateReplacement(selectedRow, newReplacement);
-        replacementTableModel.fireTableDataChanged();
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            replacementPanel,
+            "Edit Replacement",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Replacement newReplacement = new Replacement(
+              (String) replacementTypeComboBox.getSelectedItem(),
+              replacementMatchTextField.getText(),
+              replacementReplaceTextField.getText(),
+              (String) replacementCountComboBox.getSelectedItem(),
+              replacementCommentTextField.getText(),
+              replacementIsRegexCheckBox.isSelected()
+          );
+          replacementTableModel.updateReplacement(selectedRow, newReplacement);
+          replacementTableModel.fireTableDataChanged();
+        }
+        resetReplacementDialog();
       }
-      resetReplacementDialog();
     });
 
     deleteReplacementButton = new JButton("Remove");
@@ -185,8 +187,10 @@ public class Replacements {
     //Delete Replacement
     deleteReplacementButton.addActionListener(e -> {
       int selectedRow = replacementTable.getSelectedRow();
-      replacementTableModel.deleteReplacement(selectedRow);
-      replacementTableModel.fireTableDataChanged();
+      if (selectedRow != -1) {
+        replacementTableModel.deleteReplacement(selectedRow);
+        replacementTableModel.fireTableDataChanged();
+      }
     });
 
     replacementsButtonPanel = new JPanel();

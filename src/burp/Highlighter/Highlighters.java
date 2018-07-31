@@ -65,7 +65,7 @@ public class Highlighters {
     for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
       if (highlighterTableModel.isEnabled()) {
         for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
-          if (highlighter.checkCondition(logEntry)) {
+          if (highlighter.isEnabled() && highlighter.checkCondition(logEntry)) {
             logEntry.setBackgroundColor(
                 highlighterTableModel.getColor(), highlighterTableModel.getSelectedColor());
           }
@@ -83,13 +83,6 @@ public class Highlighters {
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
     JTable menuTable = new JTable(highlighterUITableModel);
-
-    highlighterUITableModel.addTableModelListener(e -> {
-      if (e.getColumn() == 0) {
-        BurpExtender.getCallbacks().printOutput("Update triggered");
-        highlight();
-      }
-    });
 
     addHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
@@ -146,26 +139,30 @@ public class Highlighters {
       }
     });
     editHighlighterButton.addActionListener(l -> {
-      HighlighterTableModel tableModel = highlighterUITableModel.get(menuTable.getSelectedRow());
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          createHighlighterUI(tableModel),
-          "Add Highlighter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
-        if(tempTableModel.getConditions().size() > 0) {
-          highlighterUITableModel.update(menuTable.getSelectedRow(), tempTableModel);
-          highlight();
-          highlighterUITableModel.fireTableDataChanged();
+      if (menuTable.getSelectedRow() != -1) {
+        HighlighterTableModel tableModel = highlighterUITableModel.get(menuTable.getSelectedRow());
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            createHighlighterUI(tableModel),
+            "Add Highlighter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
+          if (tempTableModel.getConditions().size() > 0) {
+            highlighterUITableModel.update(menuTable.getSelectedRow(), tempTableModel);
+            highlight();
+            highlighterUITableModel.fireTableDataChanged();
+          }
         }
       }
     });
     deleteHighlighterButton.addActionListener(l -> {
-      highlighterUITableModel.remove(menuTable.getSelectedRow());
-      highlight();
-      highlighterUITableModel.fireTableDataChanged();
+      if (menuTable.getSelectedRow() != -1) {
+        highlighterUITableModel.remove(menuTable.getSelectedRow());
+        highlight();
+        highlighterUITableModel.fireTableDataChanged();
+      }
     });
     return menuPanel;
   }
@@ -189,7 +186,7 @@ public class Highlighters {
       JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setOpaque(true);
       for (int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
-        if (value.equals(Highlighter.COLOR_NAMES[i])) {
+        if (label.getText().equals(Highlighter.COLOR_NAMES[i])) {
           label.setBackground(Highlighter.COLORS[i]);
         }
       }
@@ -273,33 +270,47 @@ public class Highlighters {
             )
         );
         highlighterTableModel.fireTableDataChanged();
+        resetHighlighterDialog();
       }
     });
     editHighlighterButton.addActionListener(l -> {
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          createHighlightEditorUI(highlighterTableModel),
-          "Edit Highlighter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Highlighter newHighlighter = new Highlighter(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) originalOrModifiedComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchHighlighterTextField.getText()
-        );
-        newHighlighter.setEnabled(newHighlighter.isEnabled());
-        highlighterTableModel.update(highlighterTable.getSelectedRow(), newHighlighter);
-        highlighterTableModel.fireTableDataChanged();
+      if (highlighterTable.getSelectedRow() != -1) {
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            createHighlightEditorUI(highlighterTableModel),
+            "Edit Highlighter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Highlighter newHighlighter = new Highlighter(
+              (String) booleanOperatorComboBox.getSelectedItem(),
+              (String) originalOrModifiedComboBox.getSelectedItem(),
+              (String) matchTypeComboBox.getSelectedItem(),
+              (String) matchRelationshipComboBox.getSelectedItem(),
+              matchHighlighterTextField.getText()
+          );
+          newHighlighter.setEnabled(newHighlighter.isEnabled());
+          highlighterTableModel.update(highlighterTable.getSelectedRow(), newHighlighter);
+          highlighterTableModel.fireTableDataChanged();
+          resetHighlighterDialog();
+        }
       }
     });
     deleteHighlighterButton.addActionListener(l -> {
-      highlighterTableModel.delete(highlighterTable.getSelectedRow());
-      highlighterTableModel.fireTableDataChanged();
+      if (highlighterTable.getSelectedRow() != -1 ) {
+        highlighterTableModel.delete(highlighterTable.getSelectedRow());
+        highlighterTableModel.fireTableDataChanged();
+      }
     });
     return outputPanel;
+  }
+
+  private void resetHighlighterDialog() {
+    booleanOperatorComboBox.setSelectedIndex(0);
+    originalOrModifiedComboBox.setSelectedIndex(0);
+    matchTypeComboBox.setSelectedIndex(0);
+    matchRelationshipComboBox.setSelectedItem(0);
+    matchHighlighterTextField.setText("");
   }
 
   public JPanel createHighlightEditorUI(HighlighterTableModel highlighterTableModel) {

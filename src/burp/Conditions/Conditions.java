@@ -141,32 +141,34 @@ public class Conditions {
     editConditionButton.setMaximumSize(AutoRepeater.buttonDimension);
 
     editConditionButton.addActionListener(e -> {
-      int selectedRow = conditionTable.getSelectedRow();
-      Condition tempCondition = conditionTableModel.get(selectedRow);
+      if (conditionTable.getSelectedRow() != -1) {
+        int selectedRow = conditionTable.getSelectedRow();
+        Condition tempCondition = conditionTableModel.get(selectedRow);
 
-      booleanOperatorComboBox.setSelectedItem(tempCondition.getBooleanOperator());
-      matchTypeComboBox.setSelectedItem(tempCondition.getMatchType());
-      matchRelationshipComboBox.setSelectedItem(tempCondition.getMatchRelationship());
-      matchConditionTextField.setText(tempCondition.getMatchCondition());
+        booleanOperatorComboBox.setSelectedItem(tempCondition.getBooleanOperator());
+        matchTypeComboBox.setSelectedItem(tempCondition.getMatchType());
+        matchRelationshipComboBox.setSelectedItem(tempCondition.getMatchRelationship());
+        matchConditionTextField.setText(tempCondition.getMatchCondition());
 
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          conditionPanel,
-          "Edit Condition",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Condition newCondition = new Condition(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchConditionTextField.getText()
-        );
-        newCondition.setEnabled(tempCondition.isEnabled());
-        conditionTableModel.update(selectedRow, newCondition);
-        conditionTableModel.fireTableDataChanged();
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            conditionPanel,
+            "Edit Condition",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Condition newCondition = new Condition(
+              (String) booleanOperatorComboBox.getSelectedItem(),
+              (String) matchTypeComboBox.getSelectedItem(),
+              (String) matchRelationshipComboBox.getSelectedItem(),
+              matchConditionTextField.getText()
+          );
+          newCondition.setEnabled(tempCondition.isEnabled());
+          conditionTableModel.update(selectedRow, newCondition);
+          conditionTableModel.fireTableDataChanged();
+        }
+        resetConditionDialog();
       }
-      resetConditionDialog();
     });
 
     deleteConditionButton = new JButton("Remove");
@@ -176,8 +178,10 @@ public class Conditions {
 
     deleteConditionButton.addActionListener(e -> {
       int selectedRow = conditionTable.getSelectedRow();
-      conditionTableModel.delete(selectedRow);
-      conditionTableModel.fireTableDataChanged();
+      if (selectedRow != -1) {
+        conditionTableModel.delete(selectedRow);
+        conditionTableModel.fireTableDataChanged();
+      }
     });
 
     conditionsButtonPanel = new JPanel();

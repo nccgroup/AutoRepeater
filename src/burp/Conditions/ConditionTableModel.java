@@ -33,7 +33,7 @@ public class ConditionTableModel extends AbstractTableModel {
   public boolean check(int toolFlag, IHttpRequestResponse messageInfo) {
     boolean meetsConditions = false;
     if (getConditions().size() == 0) {
-      meetsConditions = true;
+      meetsConditions = false;
     } else {
       if (getConditions()
           .stream()

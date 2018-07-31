@@ -183,33 +183,35 @@ public class Filters {
 
     editFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      Filter tempFilter = filterTableModel.get(selectedRow);
+      if (selectedRow != -1) {
+        Filter tempFilter = filterTableModel.get(selectedRow);
 
-      booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
-      matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
-      matchRelationshipComboBox.setSelectedItem(tempFilter.getMatchRelationship());
-      matchFilterTextField.setText(tempFilter.getMatchCondition());
+        booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
+        matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
+        matchRelationshipComboBox.setSelectedItem(tempFilter.getMatchRelationship());
+        matchFilterTextField.setText(tempFilter.getMatchCondition());
 
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          filterPanel,
-          "Edit Filter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Filter newFilter = new Filter(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) originalOrModifiedComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchFilterTextField.getText()
-        );
-        newFilter.setEnabled(tempFilter.isEnabled());
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            filterPanel,
+            "Edit Filter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Filter newFilter = new Filter(
+              (String) booleanOperatorComboBox.getSelectedItem(),
+              (String) originalOrModifiedComboBox.getSelectedItem(),
+              (String) matchTypeComboBox.getSelectedItem(),
+              (String) matchRelationshipComboBox.getSelectedItem(),
+              matchFilterTextField.getText()
+          );
+          newFilter.setEnabled(tempFilter.isEnabled());
 
-        filterTableModel.update(selectedRow, newFilter);
-        filterTableModel.fireTableDataChanged();
+          filterTableModel.update(selectedRow, newFilter);
+          filterTableModel.fireTableDataChanged();
+        }
+        resetFilterDialog();
       }
-      resetFilterDialog();
     });
 
     deleteFilterButton = new JButton("Remove");
@@ -219,8 +221,10 @@ public class Filters {
 
     deleteFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      filterTableModel.delete(selectedRow);
-      filterTableModel.fireTableDataChanged();
+      if (selectedRow != -1) {
+        filterTableModel.delete(selectedRow);
+        filterTableModel.fireTableDataChanged();
+      }
     });
 
     filtersButtonPanel = new JPanel();
