@@ -18,7 +18,7 @@ public class Highlighter extends Filter {
   };
 
   public final static Color[] SELECTED_COLORS = {
-      new Color(0xFFC864),
+      new Color(0xFFC498),
       new Color(0xDF4444),
       new Color(0xDFa844),
       new Color(0xDFDF44),
@@ -26,7 +26,7 @@ public class Highlighter extends Filter {
       new Color(0x44DFDF),
       new Color(0x4444DF),
       new Color(0xDFA8A8),
-      new Color(0xDF44DF) ,
+      new Color(0xDF44DF),
       new Color(0x949494),
   };
 
@@ -42,6 +42,25 @@ public class Highlighter extends Filter {
       "MAGENTA",
       "GRAY"
   };
+
+
+  public static Color getColorFromColorName(String colorName) {
+    for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.COLORS[i];
+      }
+    }
+    return Highlighter.COLORS[0];
+  }
+
+  public static Color getSelectedColorFromColorName(String colorName) {
+    for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.SELECTED_COLORS[i];
+      }
+    }
+    return Highlighter.SELECTED_COLORS[0];
+  }
 
   public Highlighter(
       String booleanOperator,

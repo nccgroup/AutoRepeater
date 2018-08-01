@@ -261,14 +261,14 @@ public class Filters {
     filtersPanel.add(filterScrollPane, c);
 
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
-    //whitelistFilterRadioButton.addActionListener(e -> {
-    //  setWhitelist(whitelistFilterRadioButton.isSelected());
-    //  logManager.setFilter(this);
-    //});
-    //blacklistFilterRadioButton.addActionListener(e -> {
-    //  setWhitelist(!blacklistFilterRadioButton.isSelected());
-    //  logManager.setFilter(this);
-    //});
+    whitelistFilterRadioButton.addActionListener(e -> {
+      setWhitelist(whitelistFilterRadioButton.isSelected());
+      logManager.setFilter(this);
+    });
+    blacklistFilterRadioButton.addActionListener(e -> {
+      setWhitelist(!blacklistFilterRadioButton.isSelected());
+      logManager.setFilter(this);
+    });
 
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
   }

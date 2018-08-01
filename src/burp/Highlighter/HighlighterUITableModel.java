@@ -6,7 +6,7 @@ import javax.swing.table.AbstractTableModel;
 public class HighlighterUITableModel extends AbstractTableModel {
   private ArrayList<HighlighterTableModel> tableModels;
 
-  private static final String[] columnNames = {"Enabled", "Color"};
+  private static final String[] columnNames = {"Enabled", "Color", "Comment"};
 
   public HighlighterUITableModel() {
     tableModels = new ArrayList<>();
@@ -67,6 +67,8 @@ public class HighlighterUITableModel extends AbstractTableModel {
         return tableModel.isEnabled();
       case 1:
         return tableModel.getColorName();
+      case 2:
+        return tableModel.getComment();
       default:
         throw new IllegalStateException("getValueAt not defined for "+Integer.toString(col));
     }

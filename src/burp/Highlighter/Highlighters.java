@@ -5,6 +5,7 @@ import burp.AutoRepeater.LogTable;
 import burp.BurpExtender;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.BoxLayout;
@@ -18,6 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Highlighters {
   // Highlighters UI
@@ -83,6 +87,28 @@ public class Highlighters {
     JPanel buttonsPanel = new JPanel();
     JTable menuTable = new JTable(highlighterUITableModel);
 
+    menuTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(
+          JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c =
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        // Only color the color column
+        if (column == 1) {
+          c.setBackground(highlighterUITableModel.getTableModels().get(row).getColor());
+          if (isSelected) {
+            c.setBackground(highlighterUITableModel.getTableModels().get(row).getSelectedColor());
+          }
+        } else {
+          c.setBackground(Highlighter.COLORS[0]);
+          if (isSelected) {
+            c.setBackground(Highlighter.SELECTED_COLORS[0]);
+          }
+        }
+        return c;
+      }
+    });
+
     addHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     deleteHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
@@ -136,6 +162,7 @@ public class Highlighters {
           highlighterUITableModel.fireTableDataChanged();
         }
       }
+      resetHighlighterDialog();
     });
     editHighlighterButton.addActionListener(l -> {
       if (menuTable.getSelectedRow() != -1) {
@@ -155,6 +182,7 @@ public class Highlighters {
           }
         }
       }
+      resetHighlighterDialog();
     });
     deleteHighlighterButton.addActionListener(l -> {
       if (menuTable.getSelectedRow() != -1) {
@@ -174,15 +202,42 @@ public class Highlighters {
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
+    JTextField commentTextField = new JTextField();
+    commentTextField.setText(highlighterTableModel.getComment());
+    JLabel commentTextFieldLabel = new JLabel("Comment: ");
+
+    commentTextField.getDocument().addDocumentListener(new DocumentListener() {
+       @Override
+       public void insertUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+       @Override
+       public void removeUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+       @Override
+       public void changedUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+     }
+    );
+
+    commentTextFieldLabel.setMaximumSize(AutoRepeater.buttonDimension);
+    commentTextFieldLabel.setMinimumSize(AutoRepeater.buttonDimension);
+    commentTextFieldLabel.setPreferredSize(AutoRepeater.buttonDimension);
+
     highlighterTable = new JTable(highlighterTableModel);
 
     JLabel colorComboBoxLabel = new JLabel("Highlight Color: ");
     JComboBox<String> colorComboBox = new JComboBox<>(Highlighter.COLOR_NAMES);
     colorComboBox.setSelectedItem(highlighterTableModel.getColorName());
-    colorComboBox.addActionListener(e -> highlighterTableModel.setColorName((String)colorComboBox.getSelectedItem()));
+    colorComboBox.addActionListener(e ->
+        highlighterTableModel.setColorName((String)colorComboBox.getSelectedItem()));
     colorComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
       DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer();
-      JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      JLabel label =
+          (JLabel) defaultListCellRenderer
+              .getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setOpaque(true);
       for (int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
         if (label.getText().equals(Highlighter.COLOR_NAMES[i])) {
@@ -248,6 +303,11 @@ public class Highlighters {
     outputPanel.setPreferredSize(AutoRepeater.dialogDimension);
     outputPanel.setMaximumSize(AutoRepeater.dialogDimension);
     outputPanel.setMinimumSize(AutoRepeater.dialogDimension);
+    JPanel commentPanel = new JPanel();
+    commentPanel.setLayout(new BoxLayout(commentPanel, BoxLayout.LINE_AXIS));
+    commentPanel.add(commentTextFieldLabel);
+    commentPanel.add(commentTextField);
+    outputPanel.add(commentPanel);
 
     // Button Actions
     addHighlighterButton.addActionListener(l -> {
@@ -269,8 +329,8 @@ public class Highlighters {
             )
         );
         highlighterTableModel.fireTableDataChanged();
-        resetHighlighterDialog();
       }
+      resetHighlighterDialog();
     });
     editHighlighterButton.addActionListener(l -> {
       if (highlighterTable.getSelectedRow() != -1) {
@@ -291,9 +351,9 @@ public class Highlighters {
           newHighlighter.setEnabled(newHighlighter.isEnabled());
           highlighterTableModel.update(highlighterTable.getSelectedRow(), newHighlighter);
           highlighterTableModel.fireTableDataChanged();
-          resetHighlighterDialog();
         }
       }
+      resetHighlighterDialog();
     });
     deleteHighlighterButton.addActionListener(l -> {
       if (highlighterTable.getSelectedRow() != -1 ) {
