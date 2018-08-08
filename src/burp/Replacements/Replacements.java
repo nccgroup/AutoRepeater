@@ -208,6 +208,8 @@ public class Replacements {
 
     replacementTableModel = new ReplacementTableModel();
     replacementTable = new JTable(replacementTableModel);
+    replacementTable.getColumnModel().getColumn(0).setMaxWidth(55);
+    replacementTable.getColumnModel().getColumn(0).setMinWidth(55);
     replacementScrollPane = new JScrollPane(replacementTable);
     replacementScrollPane.setMinimumSize(AutoRepeater.tableDimension);
 

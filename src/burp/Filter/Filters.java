@@ -244,6 +244,8 @@ public class Filters {
 
     filterTableModel = new FilterTableModel();
     filterTable = new JTable(filterTableModel);
+    filterTable.getColumnModel().getColumn(0).setMinWidth(55);
+    filterTable.getColumnModel().getColumn(0).setMaxWidth(55);
     filterScrollPane = new JScrollPane(filterTable);
 
     // Panel containing filter options

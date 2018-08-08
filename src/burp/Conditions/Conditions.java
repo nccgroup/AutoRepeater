@@ -201,6 +201,8 @@ public class Conditions {
 
     conditionTableModel = new ConditionTableModel();
     conditionTable = new JTable(conditionTableModel);
+    conditionTable.getColumnModel().getColumn(0).setMaxWidth(55);
+    conditionTable.getColumnModel().getColumn(0).setMinWidth(55);
     conditionScrollPane = new JScrollPane(conditionTable);
 
     // Panel containing condition options

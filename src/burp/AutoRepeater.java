@@ -1,12 +1,12 @@
 package burp;
 
-
 import burp.Conditions.Condition;
 import burp.Conditions.ConditionTableModel;
 import burp.Conditions.Conditions;
 import burp.Filter.Filter;
 import burp.Filter.FilterTableModel;
 import burp.Filter.Filters;
+import burp.Highlighter.Highlighter;
 import burp.Highlighter.HighlighterTableModel;
 import burp.Highlighter.HighlighterUITableModel;
 import burp.Highlighter.Highlighters;
@@ -185,6 +185,29 @@ public class AutoRepeater implements IMessageEditorController {
         filterTableModel.add(gson.fromJson(element, Filter.class));
       }
     }
+    if (configurationJson.get("highlighters") != null) {
+      for (JsonElement element : configurationJson.getAsJsonArray("highlighters")) {
+        HighlighterTableModel tempHighlighterTableModel = new HighlighterTableModel();
+        JsonObject elementObject = element.getAsJsonObject();
+        if (elementObject.get("color") != null) {
+          tempHighlighterTableModel.setColorName(elementObject.get("color").getAsString());
+        }
+        if (elementObject.get("comment") != null) {
+          if (!elementObject.get("comment").isJsonNull()) {
+            tempHighlighterTableModel.setComment(elementObject.get("comment").getAsString());
+          } else {
+            tempHighlighterTableModel.setComment("");
+          }
+        }
+        if (elementObject.get("enabled") != null) {
+          tempHighlighterTableModel.setEnabled(elementObject.get("enabled").getAsBoolean());
+        }
+        for (JsonElement highlighter : elementObject.get("highlighters").getAsJsonArray()) {
+          tempHighlighterTableModel.add(gson.fromJson(highlighter, Highlighter.class));
+        }
+        highlighterUITableModel.add(tempHighlighterTableModel);
+      }
+    }
     // If something was empty, put in the default values
     if(conditionsTableModel.getConditions().size() == 0) {
       setDefaultConditions();
@@ -252,6 +275,7 @@ public class AutoRepeater implements IMessageEditorController {
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
     JsonArray filtersArray = new JsonArray();
+    JsonArray highlightersArray = new JsonArray();
     for (Condition c : conditionsTableModel.getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
@@ -264,10 +288,23 @@ public class AutoRepeater implements IMessageEditorController {
     for (Filter f : filterTableModel.getFilters()) {
       filtersArray.add(gson.toJsonTree(f));
     }
+    for (HighlighterTableModel htm : highlighterUITableModel.getTableModels()) {
+      JsonArray tempHighlightersArray = new JsonArray();
+      for (Highlighter h : htm.getHighlighters()) {
+        tempHighlightersArray.add(gson.toJsonTree(h));
+      }
+      JsonObject highlighterTableObject = new JsonObject();
+      highlighterTableObject.addProperty("color", htm.getColorName());
+      highlighterTableObject.addProperty("comment", htm.getComment());
+      highlighterTableObject.addProperty("enabled", htm.isEnabled());
+      highlighterTableObject.add("highlighters", tempHighlightersArray);
+      highlightersArray.add(highlighterTableObject);
+    }
     autoRepeaterJson.add("baseReplacements", baseReplacementsArray);
     autoRepeaterJson.add("replacements", replacementsArray);
     autoRepeaterJson.add("conditions", conditionsArray);
     autoRepeaterJson.add("filters", filtersArray);
+    autoRepeaterJson.add("highlighters", highlightersArray);
     return autoRepeaterJson;
   }
 

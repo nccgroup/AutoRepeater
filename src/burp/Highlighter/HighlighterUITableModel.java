@@ -16,10 +16,12 @@ public class HighlighterUITableModel extends AbstractTableModel {
 
   public void add(HighlighterTableModel tableModel) {
     tableModels.add(tableModel);
+    fireTableDataChanged();
   }
 
   public void update(int index, HighlighterTableModel tableModel) {
     tableModels.set(index, tableModel);
+    fireTableDataChanged();
   }
 
   public HighlighterTableModel get(int index) {

@@ -21,6 +21,7 @@ public class HighlighterTableModel extends FilterTableModel{
 
   public void setComment(String comment) {
     this.comment = comment;
+    fireTableDataChanged();
   }
 
   public String getComment() {return this.comment;}
@@ -39,6 +40,7 @@ public class HighlighterTableModel extends FilterTableModel{
     if (getConditions().get(0).equals(highlighter)) {
       getConditions().get(0).setBooleanOperator("");
     }
+    fireTableDataChanged();
   }
 
   @Override
@@ -46,6 +48,7 @@ public class HighlighterTableModel extends FilterTableModel{
     getConditions().remove(index);
     // Clear out the boolean if it's the first entry
     getConditions().get(0).setBooleanOperator("");
+    fireTableDataChanged();
   }
 
   public ArrayList<Highlighter> getHighlighters() {
@@ -74,6 +77,7 @@ public class HighlighterTableModel extends FilterTableModel{
         this.colorName = colorName;
         this.backgroundColor = Highlighter.COLORS[i];
         this.selectedBackgroundColor = Highlighter.SELECTED_COLORS[i];
+        fireTableDataChanged();
         return;
       }
     }
@@ -81,6 +85,7 @@ public class HighlighterTableModel extends FilterTableModel{
     this.colorName = Highlighter.COLOR_NAMES[0];
     this.backgroundColor = Highlighter.COLORS[0];
     this.selectedBackgroundColor = Highlighter.SELECTED_COLORS[0];
+    fireTableDataChanged();
   }
 
   public Highlighter get(int index) { return (Highlighter)super.get(index); }
@@ -91,6 +96,7 @@ public class HighlighterTableModel extends FilterTableModel{
 
   public void setEnabled(boolean enabled) {
     isEnabled = enabled;
+    fireTableDataChanged();
   }
 
   @Override
