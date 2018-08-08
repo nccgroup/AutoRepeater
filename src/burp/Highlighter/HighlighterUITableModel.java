@@ -6,18 +6,22 @@ import javax.swing.table.AbstractTableModel;
 public class HighlighterUITableModel extends AbstractTableModel {
   private ArrayList<HighlighterTableModel> tableModels;
 
-  private static final String[] columnNames = {"Enabled", "Color"};
+  private static final String[] columnNames = {"Enabled", "Color", "Comment"};
 
   public HighlighterUITableModel() {
     tableModels = new ArrayList<>();
   }
 
+  public ArrayList<HighlighterTableModel> getTableModels() { return tableModels; }
+
   public void add(HighlighterTableModel tableModel) {
     tableModels.add(tableModel);
+    fireTableDataChanged();
   }
 
   public void update(int index, HighlighterTableModel tableModel) {
     tableModels.set(index, tableModel);
+    fireTableDataChanged();
   }
 
   public HighlighterTableModel get(int index) {
@@ -49,6 +53,7 @@ public class HighlighterUITableModel extends AbstractTableModel {
         break;
     }
     tableModels.set(row, tableModel);
+    fireTableCellUpdated(row, col);
   }
 
   @Override
@@ -63,7 +68,9 @@ public class HighlighterUITableModel extends AbstractTableModel {
       case 0:
         return tableModel.isEnabled();
       case 1:
-        return tableModel.getColor();
+        return tableModel.getColorName();
+      case 2:
+        return tableModel.getComment();
       default:
         throw new IllegalStateException("getValueAt not defined for "+Integer.toString(col));
     }

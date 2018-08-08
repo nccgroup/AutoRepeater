@@ -1,13 +1,14 @@
 package burp;
 
-
 import burp.Conditions.Condition;
 import burp.Conditions.ConditionTableModel;
 import burp.Conditions.Conditions;
 import burp.Filter.Filter;
 import burp.Filter.FilterTableModel;
 import burp.Filter.Filters;
+import burp.Highlighter.Highlighter;
 import burp.Highlighter.HighlighterTableModel;
+import burp.Highlighter.HighlighterUITableModel;
 import burp.Highlighter.Highlighters;
 import burp.Logs.LogEntry;
 import burp.Logs.LogEntryMenu;
@@ -37,7 +38,7 @@ import javax.swing.table.TableModel;
 public class AutoRepeater implements IMessageEditorController {
 
   // UI Component Dimensions
-  public static final Dimension dialogDimension = new Dimension(400, 140);
+  public static final Dimension dialogDimension = new Dimension(450, 140);
   public static final Dimension comboBoxDimension = new Dimension(250, 20);
   public static final Dimension textFieldDimension = new Dimension(250, 25);
   public static final Dimension buttonDimension = new Dimension(75, 20);
@@ -128,7 +129,7 @@ public class AutoRepeater implements IMessageEditorController {
   private FilterTableModel filterTableModel;
 
   private Highlighters highlighters;
-  private HighlighterTableModel highlighterTableModel;
+  private HighlighterUITableModel highlighterUITableModel;
 
   public AutoRepeater() {
     this.callbacks = BurpExtender.getCallbacks();
@@ -141,10 +142,11 @@ public class AutoRepeater implements IMessageEditorController {
     baseReplacements = new Replacements();
     baseReplacementsTableModel = baseReplacements.getReplacementTableModel();
     logManager = new LogManager();
+    logTable = new LogTable(logManager.getLogTableModel());
     filters = new Filters(logManager);
     filterTableModel = filters.getFilterTableModel();
-    highlighters = new Highlighters(logManager);
-    highlighterTableModel = highlighters.getHighlighterTableModel();
+    highlighters = new Highlighters(logManager, logTable);
+    highlighterUITableModel = highlighters.getHighlighterUITableModel();
     createUI();
     setDefaultState();
     activatedButton.setSelected(true);
@@ -181,6 +183,29 @@ public class AutoRepeater implements IMessageEditorController {
     if (configurationJson.get("filters") != null) {
       for (JsonElement element : configurationJson.getAsJsonArray("filters")) {
         filterTableModel.add(gson.fromJson(element, Filter.class));
+      }
+    }
+    if (configurationJson.get("highlighters") != null) {
+      for (JsonElement element : configurationJson.getAsJsonArray("highlighters")) {
+        HighlighterTableModel tempHighlighterTableModel = new HighlighterTableModel();
+        JsonObject elementObject = element.getAsJsonObject();
+        if (elementObject.get("color") != null) {
+          tempHighlighterTableModel.setColorName(elementObject.get("color").getAsString());
+        }
+        if (elementObject.get("comment") != null) {
+          if (!elementObject.get("comment").isJsonNull()) {
+            tempHighlighterTableModel.setComment(elementObject.get("comment").getAsString());
+          } else {
+            tempHighlighterTableModel.setComment("");
+          }
+        }
+        if (elementObject.get("enabled") != null) {
+          tempHighlighterTableModel.setEnabled(elementObject.get("enabled").getAsBoolean());
+        }
+        for (JsonElement highlighter : elementObject.get("highlighters").getAsJsonArray()) {
+          tempHighlighterTableModel.add(gson.fromJson(highlighter, Highlighter.class));
+        }
+        highlighterUITableModel.add(tempHighlighterTableModel);
       }
     }
     // If something was empty, put in the default values
@@ -250,6 +275,7 @@ public class AutoRepeater implements IMessageEditorController {
     JsonArray replacementsArray = new JsonArray();
     JsonArray conditionsArray = new JsonArray();
     JsonArray filtersArray = new JsonArray();
+    JsonArray highlightersArray = new JsonArray();
     for (Condition c : conditionsTableModel.getConditions()) {
       conditionsArray.add(gson.toJsonTree(c));
     }
@@ -262,10 +288,23 @@ public class AutoRepeater implements IMessageEditorController {
     for (Filter f : filterTableModel.getFilters()) {
       filtersArray.add(gson.toJsonTree(f));
     }
+    for (HighlighterTableModel htm : highlighterUITableModel.getTableModels()) {
+      JsonArray tempHighlightersArray = new JsonArray();
+      for (Highlighter h : htm.getHighlighters()) {
+        tempHighlightersArray.add(gson.toJsonTree(h));
+      }
+      JsonObject highlighterTableObject = new JsonObject();
+      highlighterTableObject.addProperty("color", htm.getColorName());
+      highlighterTableObject.addProperty("comment", htm.getComment());
+      highlighterTableObject.addProperty("enabled", htm.isEnabled());
+      highlighterTableObject.add("highlighters", tempHighlightersArray);
+      highlightersArray.add(highlighterTableObject);
+    }
     autoRepeaterJson.add("baseReplacements", baseReplacementsArray);
     autoRepeaterJson.add("replacements", replacementsArray);
     autoRepeaterJson.add("conditions", conditionsArray);
     autoRepeaterJson.add("filters", filtersArray);
+    autoRepeaterJson.add("highlighters", highlightersArray);
     return autoRepeaterJson;
   }
 
@@ -325,11 +364,27 @@ public class AutoRepeater implements IMessageEditorController {
     configurationTabbedPane.addTab("Replacements", replacements.getUI());
     configurationTabbedPane.addTab("Conditions", conditions.getUI());
     configurationTabbedPane.addTab("Log Filter", filters.getUI());
-    //configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
+    configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
     configurationTabbedPane.setSelectedIndex(1);
     // table of log entries
-    //logEntriesWithoutResponses = new ArrayList<>();
-    logTable = new LogTable(logManager.getLogTableModel());
+    logTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(
+          JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c =
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        c.setBackground(
+            logManager.getLogTableModel().getLogEntry(
+                logTable.convertRowIndexToModel(row)).getBackgroundColor());
+        if(isSelected) {
+          c.setBackground(
+              logManager.getLogTableModel().getLogEntry(
+                  logTable.convertRowIndexToModel(row)).getSelectedBackgroundColor());
+        }
+        return c;
+      }
+    });
+
     logTable.setAutoCreateRowSorter(true);
 
     logTable.getColumnModel().getColumn(0).setPreferredWidth(5);
@@ -342,11 +397,6 @@ public class AutoRepeater implements IMessageEditorController {
     logTable.getColumnModel().getColumn(7).setPreferredWidth(30);
 
     // Make every cell left aligned
-    DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
-    leftRenderer.setHorizontalAlignment(JLabel.LEFT);
-    for (int i = 0; i < 8; i++) {
-      logTable.getColumnModel().getColumn(i).setCellRenderer(leftRenderer);
-    }
 
     JScrollPane logTableScrollPane = new JScrollPane(logTable);
     logTableScrollPane.setMinimumSize(configurationPaneDimension);
@@ -634,9 +684,10 @@ public class AutoRepeater implements IMessageEditorController {
                 toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
+            // Highlight the rows
+            highlighters.highlight(newLogEntry);
             logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);
-            //BurpExtender.highlightTab();
           }
         }
       }

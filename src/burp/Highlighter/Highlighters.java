@@ -1,9 +1,11 @@
 package burp.Highlighter;
 
 import burp.AutoRepeater;
+import burp.AutoRepeater.LogTable;
 import burp.BurpExtender;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.BoxLayout;
@@ -17,16 +19,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Highlighters {
   // Highlighters UI
-  JPanel highlightsPanel;
-  private JPanel highlightFilterPanel;
-  private JScrollPane highlightFilterScrollPane;
-  private JTable highlightFilterTable;
-  private JButton addHighlighterButton;
-  private JButton editHighlighterButton;
-  private JButton deleteHighlighterButton;
+  private JPanel highlightsPanel;
 
   // Highlighters Popup UI
   private JComboBox<String> booleanOperatorComboBox;
@@ -36,40 +35,86 @@ public class Highlighters {
   private JTextField matchHighlighterTextField;
 
   // Highlighters Menu UI
-  private JLabel colorLabel;
-
   private JLabel booleanOperatorLabel;
   private JLabel originalOrModifiedLabel;
   private JLabel matchTypeLabel;
   private JLabel matchRelationshipLabel;
   private JLabel matchHighlighterLabel;
+  private JTable highlighterTable;
 
-  private HighlighterTableModel highlighterTableModel;
   private HighlighterUITableModel highlighterUITableModel;
   private LogManager logManager;
+  private LogTable logTable;
 
-  public Highlighters(LogManager logManager) {
+  public Highlighters(LogManager logManager, LogTable logTable) {
     highlighterUITableModel = new HighlighterUITableModel();
+    highlighterUITableModel.addTableModelListener(l -> highlight());
     this.logManager = logManager;
+    this.logTable = logTable;
     highlightsPanel = createMenuUI();
   }
 
-  public HighlighterTableModel getHighlighterTableModel() { return highlighterTableModel; }
+  public HighlighterUITableModel getHighlighterUITableModel() { return highlighterUITableModel; }
   public JPanel getUI() { return highlightsPanel; }
 
-  public boolean highlight(LogEntry logEntry) {
-    return highlighterTableModel.check(logEntry);
+  public void highlight() {
+    for (LogEntry logEntry : logManager.getLogTableModel().getLog()) {
+      highlight(logEntry);
+    }
+    logTable.repaint();
+  }
+
+  public void highlight(LogEntry logEntry) {
+    logEntry.setBackgroundColor(Highlighter.COLORS[0], Highlighter.SELECTED_COLORS[0]);
+    for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
+      if (highlighterTableModel.isEnabled()) {
+        for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
+          if (highlighter.isEnabled() && highlighter.checkCondition(logEntry)) {
+            logEntry.setBackgroundColor(
+                highlighterTableModel.getColor(), highlighterTableModel.getSelectedColor());
+          }
+        }
+      }
+    }
+    logTable.repaint();
   }
 
   private JPanel createMenuUI() {
     GridBagConstraints c;
-
     JPanel menuPanel = new JPanel();
     JButton addHighlighterButton = new JButton("Add");
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
     JTable menuTable = new JTable(highlighterUITableModel);
+
+    menuTable.getColumnModel().getColumn(0).setMaxWidth(55);
+    menuTable.getColumnModel().getColumn(0).setMinWidth(55);
+    menuTable.getColumnModel().getColumn(1).setMaxWidth(70);
+    menuTable.getColumnModel().getColumn(1).setMinWidth(70);
+    //menuTable.getColumnModel().getColumn(2).setPreferredWidth(20);
+
+    menuTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(
+          JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c =
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        // Only color the color column
+        if (column == 1) {
+          c.setBackground(highlighterUITableModel.getTableModels().get(row).getColor());
+          if (isSelected) {
+            c.setBackground(highlighterUITableModel.getTableModels().get(row).getSelectedColor());
+          }
+        } else {
+          c.setBackground(Highlighter.COLORS[0]);
+          if (isSelected) {
+            c.setBackground(Highlighter.SELECTED_COLORS[0]);
+          }
+        }
+        return c;
+      }
+    });
 
     addHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
@@ -109,6 +154,7 @@ public class Highlighters {
 
     addHighlighterButton.addActionListener(l -> {
       HighlighterTableModel tableModel = new HighlighterTableModel();
+      tableModel.addTableModelListener(e -> highlight());
       int result = JOptionPane.showConfirmDialog(
           BurpExtender.getParentTabbedPane(),
           createHighlighterUI(tableModel),
@@ -116,26 +162,41 @@ public class Highlighters {
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
       if (result == JOptionPane.OK_OPTION) {
-        highlighterUITableModel.add(new HighlighterTableModel(tableModel));
-        highlighterUITableModel.fireTableDataChanged();
+        HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
+        if(tempTableModel.getConditions().size() > 0) {
+          tempTableModel.setEnabled(true);
+          highlighterUITableModel.add(tempTableModel);
+          highlight();
+          highlighterUITableModel.fireTableDataChanged();
+        }
       }
     });
     editHighlighterButton.addActionListener(l -> {
-      HighlighterTableModel tableModel = highlighterUITableModel.get(menuTable.getSelectedRow());
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          createHighlighterUI(tableModel),
-          "Add Highlighter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        highlighterUITableModel.update(menuTable.getSelectedRow(), new HighlighterTableModel(tableModel));
-        highlighterUITableModel.fireTableDataChanged();
+      if (menuTable.getSelectedRow() != -1) {
+        HighlighterTableModel tableModel = highlighterUITableModel.get(menuTable.getSelectedRow());
+        tableModel.addTableModelListener(e -> highlight());
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            createHighlighterUI(tableModel),
+            "Add Highlighter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          HighlighterTableModel tempTableModel = new HighlighterTableModel(tableModel);
+          if (tempTableModel.getConditions().size() > 0) {
+            highlighterUITableModel.update(menuTable.getSelectedRow(), tempTableModel);
+            highlight();
+            highlighterUITableModel.fireTableDataChanged();
+          }
+        }
       }
     });
     deleteHighlighterButton.addActionListener(l -> {
-      highlighterUITableModel.remove(menuTable.getSelectedRow());
-      highlighterUITableModel.fireTableDataChanged();
+      if (menuTable.getSelectedRow() != -1) {
+        highlighterUITableModel.remove(menuTable.getSelectedRow());
+        highlight();
+        highlighterUITableModel.fireTableDataChanged();
+      }
     });
     return menuPanel;
   }
@@ -148,23 +209,52 @@ public class Highlighters {
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
     JPanel buttonsPanel = new JPanel();
-    //highlighterTableModel = new HighlighterTableModel();
-    JTable menuTable = new JTable(highlighterTableModel);
+    JTextField commentTextField = new JTextField();
+    commentTextField.setText(highlighterTableModel.getComment());
+    JLabel commentTextFieldLabel = new JLabel("Comment: ");
+
+    commentTextField.getDocument().addDocumentListener(new DocumentListener() {
+       @Override
+       public void insertUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+       @Override
+       public void removeUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+       @Override
+       public void changedUpdate(DocumentEvent e) {
+         highlighterTableModel.setComment(commentTextField.getText());
+       }
+     }
+    );
+
+    commentTextFieldLabel.setMaximumSize(AutoRepeater.buttonDimension);
+    commentTextFieldLabel.setMinimumSize(AutoRepeater.buttonDimension);
+    commentTextFieldLabel.setPreferredSize(AutoRepeater.buttonDimension);
+
+    highlighterTable = new JTable(highlighterTableModel);
+    highlighterTable.getColumnModel().getColumn(0).setMaxWidth(55);
+    highlighterTable.getColumnModel().getColumn(0).setMinWidth(55);
 
     JLabel colorComboBoxLabel = new JLabel("Highlight Color: ");
     JComboBox<String> colorComboBox = new JComboBox<>(Highlighter.COLOR_NAMES);
+    colorComboBox.setSelectedItem(highlighterTableModel.getColorName());
+    colorComboBox.addActionListener(e ->
+        highlighterTableModel.setColorName((String)colorComboBox.getSelectedItem()));
     colorComboBox.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
       DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer();
-      JLabel label = (JLabel) defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      JLabel label =
+          (JLabel) defaultListCellRenderer
+              .getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       label.setOpaque(true);
       for (int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
-        if (value.equals(Highlighter.COLOR_NAMES[i])) {
+        if (label.getText().equals(Highlighter.COLOR_NAMES[i])) {
           label.setBackground(Highlighter.COLORS[i]);
         }
       }
       return label;
     });
-    colorComboBox.addActionListener(e -> highlighterTableModel.setColor((String)colorComboBox.getSelectedItem()));
     colorComboBox.setPreferredSize(AutoRepeater.comboBoxDimension);
     colorComboBox.setMinimumSize(AutoRepeater.comboBoxDimension);
     colorComboBox.setMaximumSize(AutoRepeater.comboBoxDimension);
@@ -199,7 +289,7 @@ public class Highlighters {
     buttonsPanel.add(editHighlighterButton, c);
     buttonsPanel.add(deleteHighlighterButton, c);
 
-    JScrollPane menuScrollPane = new JScrollPane(menuTable);
+    JScrollPane menuScrollPane = new JScrollPane(highlighterTable);
 
     // Panel containing filter options
     menuPanel.setLayout(new GridBagLayout());
@@ -222,12 +312,17 @@ public class Highlighters {
     outputPanel.setPreferredSize(AutoRepeater.dialogDimension);
     outputPanel.setMaximumSize(AutoRepeater.dialogDimension);
     outputPanel.setMinimumSize(AutoRepeater.dialogDimension);
+    JPanel commentPanel = new JPanel();
+    commentPanel.setLayout(new BoxLayout(commentPanel, BoxLayout.LINE_AXIS));
+    commentPanel.add(commentTextFieldLabel);
+    commentPanel.add(commentTextField);
+    outputPanel.add(commentPanel);
 
     // Button Actions
     addHighlighterButton.addActionListener(l -> {
       int result = JOptionPane.showConfirmDialog(
           BurpExtender.getParentTabbedPane(),
-          createHighlightEditorUI(),
+          createHighlightEditorUI(highlighterTableModel),
           "Edit Highlighter",
           JOptionPane.OK_CANCEL_OPTION,
           JOptionPane.PLAIN_MESSAGE);
@@ -244,35 +339,49 @@ public class Highlighters {
         );
         highlighterTableModel.fireTableDataChanged();
       }
+      resetHighlighterDialog();
     });
     editHighlighterButton.addActionListener(l -> {
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          createHighlightEditorUI(),
-          "Edit Highlighter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Highlighter newHighlighter = new Highlighter(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) originalOrModifiedComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchHighlighterTextField.getText()
-        );
-        newHighlighter.setEnabled(newHighlighter.isEnabled());
-        highlighterTableModel.update(menuTable.getSelectedRow(), newHighlighter);
-        highlighterTableModel.fireTableDataChanged();
+      if (highlighterTable.getSelectedRow() != -1) {
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            createHighlightEditorUI(highlighterTableModel),
+            "Edit Highlighter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Highlighter newHighlighter = new Highlighter(
+              (String) booleanOperatorComboBox.getSelectedItem(),
+              (String) originalOrModifiedComboBox.getSelectedItem(),
+              (String) matchTypeComboBox.getSelectedItem(),
+              (String) matchRelationshipComboBox.getSelectedItem(),
+              matchHighlighterTextField.getText()
+          );
+          newHighlighter.setEnabled(newHighlighter.isEnabled());
+          highlighterTableModel.update(highlighterTable.getSelectedRow(), newHighlighter);
+          highlighterTableModel.fireTableDataChanged();
+        }
       }
+      resetHighlighterDialog();
     });
     deleteHighlighterButton.addActionListener(l -> {
-      highlighterTableModel.delete(menuTable.getSelectedRow());
-      highlighterTableModel.fireTableDataChanged();
+      if (highlighterTable.getSelectedRow() != -1 ) {
+        highlighterTableModel.remove(highlighterTable.getSelectedRow());
+        highlighterTableModel.fireTableDataChanged();
+      }
     });
     return outputPanel;
   }
 
-  public JPanel createHighlightEditorUI() {
+  private void resetHighlighterDialog() {
+    booleanOperatorComboBox.setSelectedIndex(0);
+    originalOrModifiedComboBox.setSelectedIndex(0);
+    matchTypeComboBox.setSelectedIndex(0);
+    matchRelationshipComboBox.setSelectedItem(0);
+    matchHighlighterTextField.setText("");
+  }
+
+  public JPanel createHighlightEditorUI(HighlighterTableModel highlighterTableModel) {
     booleanOperatorComboBox = new JComboBox<>(Highlighter.BOOLEAN_OPERATOR_OPTIONS);
     originalOrModifiedComboBox = new JComboBox<>(Highlighter.ORIGINAL_OR_MODIFIED);
     matchTypeComboBox = new JComboBox<>(Highlighter.MATCH_TYPE_OPTIONS);
@@ -295,12 +404,21 @@ public class Highlighters {
           (String) matchTypeComboBox.getSelectedItem()));
     });
 
-    colorLabel = new JLabel("Highlight Color: ");
+    if (highlighterTable.getSelectedRow() != -1) {
+      Highlighter tempHighlighter = highlighterTableModel.getHighlighters()
+          .get(highlighterTable.getSelectedRow());
+      booleanOperatorComboBox.setSelectedItem(tempHighlighter.getBooleanOperator());
+      originalOrModifiedComboBox.setSelectedItem(tempHighlighter.getOriginalOrModified());
+      matchTypeComboBox.setSelectedItem(tempHighlighter.getMatchType());
+      matchRelationshipComboBox.setSelectedItem(tempHighlighter.getMatchRelationship());
+      matchHighlighterTextField.setText(tempHighlighter.getMatchCondition());
+    }
+
     booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    originalOrModifiedLabel = new JLabel("Match Original Or Modified");
+    originalOrModifiedLabel = new JLabel("Match Original Or Modified: ");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchHighlighterLabel = new JLabel("Match Filter: ");
+    matchHighlighterLabel = new JLabel("Match Condition: ");
 
     JPanel outputPanel = new JPanel();
     outputPanel.setLayout(new GridBagLayout());

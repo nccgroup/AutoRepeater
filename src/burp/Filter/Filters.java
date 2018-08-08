@@ -6,8 +6,6 @@ import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -23,7 +21,7 @@ import javax.swing.JTextField;
 public class Filters {
 
   // Filters UI
-  JPanel filtersPanel;
+  private JPanel filtersPanel;
   private JPanel filterPanel;
   private JScrollPane filterScrollPane;
   private JRadioButton whitelistFilterRadioButton;
@@ -117,10 +115,10 @@ public class Filters {
     });
 
     booleanOperatorLabel = new JLabel("Boolean Operator: ");
-    originalOrModifiedLabel = new JLabel("Match Original Or Modified");
+    originalOrModifiedLabel = new JLabel("Match Original Or Modified: ");
     matchTypeLabel = new JLabel("Match Type: ");
     matchRelationshipLabel = new JLabel("Match Relationship: ");
-    matchFilterLabel = new JLabel("Match Filter: ");
+    matchFilterLabel = new JLabel("Match Condition: ");
 
     c.gridx = 0;
     c.gridy = 0;
@@ -183,33 +181,35 @@ public class Filters {
 
     editFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      Filter tempFilter = filterTableModel.get(selectedRow);
+      if (selectedRow != -1) {
+        Filter tempFilter = filterTableModel.get(selectedRow);
 
-      booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
-      matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
-      matchRelationshipComboBox.setSelectedItem(tempFilter.getMatchRelationship());
-      matchFilterTextField.setText(tempFilter.getMatchCondition());
+        booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
+        matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
+        matchRelationshipComboBox.setSelectedItem(tempFilter.getMatchRelationship());
+        matchFilterTextField.setText(tempFilter.getMatchCondition());
 
-      int result = JOptionPane.showConfirmDialog(
-          BurpExtender.getParentTabbedPane(),
-          filterPanel,
-          "Edit Filter",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-      if (result == JOptionPane.OK_OPTION) {
-        Filter newFilter = new Filter(
-            (String) booleanOperatorComboBox.getSelectedItem(),
-            (String) originalOrModifiedComboBox.getSelectedItem(),
-            (String) matchTypeComboBox.getSelectedItem(),
-            (String) matchRelationshipComboBox.getSelectedItem(),
-            matchFilterTextField.getText()
-        );
-        newFilter.setEnabled(tempFilter.isEnabled());
+        int result = JOptionPane.showConfirmDialog(
+            BurpExtender.getParentTabbedPane(),
+            filterPanel,
+            "Edit Filter",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+          Filter newFilter = new Filter(
+              (String) booleanOperatorComboBox.getSelectedItem(),
+              (String) originalOrModifiedComboBox.getSelectedItem(),
+              (String) matchTypeComboBox.getSelectedItem(),
+              (String) matchRelationshipComboBox.getSelectedItem(),
+              matchFilterTextField.getText()
+          );
+          newFilter.setEnabled(tempFilter.isEnabled());
 
-        filterTableModel.update(selectedRow, newFilter);
-        filterTableModel.fireTableDataChanged();
+          filterTableModel.update(selectedRow, newFilter);
+          filterTableModel.fireTableDataChanged();
+        }
+        resetFilterDialog();
       }
-      resetFilterDialog();
     });
 
     deleteFilterButton = new JButton("Remove");
@@ -219,8 +219,10 @@ public class Filters {
 
     deleteFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
-      filterTableModel.delete(selectedRow);
-      filterTableModel.fireTableDataChanged();
+      if (selectedRow != -1) {
+        filterTableModel.remove(selectedRow);
+        filterTableModel.fireTableDataChanged();
+      }
     });
 
     filtersButtonPanel = new JPanel();
@@ -242,6 +244,8 @@ public class Filters {
 
     filterTableModel = new FilterTableModel();
     filterTable = new JTable(filterTableModel);
+    filterTable.getColumnModel().getColumn(0).setMinWidth(55);
+    filterTable.getColumnModel().getColumn(0).setMaxWidth(55);
     filterScrollPane = new JScrollPane(filterTable);
 
     // Panel containing filter options
@@ -259,7 +263,6 @@ public class Filters {
     filtersPanel.add(filterScrollPane, c);
 
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
-    // checkbox didn't trigger a tablemodelupdated action so i'm doing this instead.
     whitelistFilterRadioButton.addActionListener(e -> {
       setWhitelist(whitelistFilterRadioButton.isSelected());
       logManager.setFilter(this);
@@ -270,22 +273,6 @@ public class Filters {
     });
 
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
-    filterTable.addMouseListener(new MouseListener() {
-      @Override
-      public void mouseClicked(MouseEvent e) { logManager.setFilter(Filters.this); }
-
-      @Override
-      public void mousePressed(MouseEvent e) { logManager.setFilter(Filters.this); }
-
-      @Override
-      public void mouseReleased(MouseEvent e) { logManager.setFilter(Filters.this);}
-
-      @Override
-      public void mouseEntered(MouseEvent e) {}
-
-      @Override
-      public void mouseExited(MouseEvent e) {}
-    });
   }
 
   public void setWhitelist(boolean whitelist) {

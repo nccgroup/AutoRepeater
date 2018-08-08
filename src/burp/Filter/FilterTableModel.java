@@ -48,6 +48,16 @@ public class FilterTableModel extends ConditionTableModel {
   public Filter get(int index) { return (Filter)super.get(index); }
 
   @Override
+  public String getColumnName(int col) {
+    return columnNames[col];
+  }
+
+  @Override
+  public int getColumnCount() {
+    return columnNames.length;
+  }
+
+  @Override
   public Object getValueAt(int row, int col) {
     Filter filter = get(row);
     switch (col) {
@@ -87,10 +97,13 @@ public class FilterTableModel extends ConditionTableModel {
       case 4:
         filter.setMatchRelationship((String) value);
         break;
-      default:
+      case 5:
         filter.setMatchCondition((String) value);
         break;
+      default:
+        throw new IllegalStateException("setValueAt not defined for "+Integer.toString(col));
     }
     update(row, filter);
+    fireTableCellUpdated(row, col);
   }
 }

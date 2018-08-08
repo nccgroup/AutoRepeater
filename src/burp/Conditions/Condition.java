@@ -72,6 +72,30 @@ public class Condition {
       "Listener Port"
   };
 
+  public boolean checkCondition(int toolFlag, IHttpRequestResponse messageInfo) {
+    switch (this.matchType) {
+      case "Domain Name": return checkDomainName(messageInfo);
+      case "Protocol": return checkProtocol(messageInfo);
+      case "HTTP Method": return checkHttpMethod(messageInfo);
+      case "URL": return checkUrl(messageInfo);
+      case "File Extension": return checkFileExtension(messageInfo);
+      case "Request": return checkRequest(messageInfo);
+      case "Cookie Name": return checkCookieName(messageInfo);
+      case "Cookie Value": return checkCookieValue(messageInfo);
+      case "Any Header": return checkAnyHeader(messageInfo);
+      case "Request Body": return checkRequestBody(messageInfo);
+      case "Param Name": return checkParamName(messageInfo);
+      case "Param Value": return checkParamValue(messageInfo);
+      case "Sent From Tool": return checkSentFromTool(toolFlag);
+      case "Listener Port": return checkListenerPort(messageInfo);
+      case "Status Code": return checkStatusCode(messageInfo);
+      case "String In Request": return checkStringInRequest(messageInfo);
+      case "String In Response": return checkStringInResponse(messageInfo);
+      default: throw new IllegalStateException("checkCondition() not defined for the input.");
+    }
+  }
+
+
   public static String[] getMatchRelationshipOptions(String inputString) {
     switch (inputString) {
       case "Domain Name":
@@ -415,31 +439,6 @@ public class Condition {
       return messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition);
     } else {
       return !(messageInfo.getHttpService().getPort() == Integer.parseInt(this.matchCondition));
-    }
-  }
-
-  public boolean checkCondition(int toolFlag, IHttpRequestResponse messageInfo) {
-    switch (this.matchType) {
-      case "Domain Name": return checkDomainName(messageInfo);
-      case "Protocol": return checkProtocol(messageInfo);
-      case "HTTP Method": return checkHttpMethod(messageInfo);
-      case "URL": return checkUrl(messageInfo);
-      case "File Extension": return checkFileExtension(messageInfo);
-      case "Request": return checkRequest(messageInfo);
-      case "Cookie Name": return checkCookieName(messageInfo);
-      case "Cookie Value": return checkCookieValue(messageInfo);
-      case "Any Header": return checkAnyHeader(messageInfo);
-      case "Request Body": return checkRequestBody(messageInfo);
-      case "Param Name": return checkParamName(messageInfo);
-      case "Param Value": return checkParamValue(messageInfo);
-      case "Sent From Tool": return checkSentFromTool(toolFlag);
-      case "Listener Port": return checkListenerPort(messageInfo);
-      case "Status Code": return checkStatusCode(messageInfo);
-      case "String In Request": return checkStringInRequest(messageInfo);
-      case "String In Response": return checkStringInResponse(messageInfo);
-      case "Request Length": return checkRequestLength(messageInfo);
-      case "Response Length": return checkResponseLength(messageInfo);
-      default: throw new IllegalStateException("checkCondition() not defined for the input.");
     }
   }
 

@@ -4,41 +4,62 @@ import burp.Filter.Filter;
 import java.awt.Color;
 
 public class Highlighter extends Filter {
-  private int color;
-
-  final static Color[] COLORS = {
-    Color.WHITE,
-    Color.RED,
-    Color.ORANGE,
-    Color.YELLOW,
-    Color.GREEN,
-    Color.CYAN,
-    Color.PINK,
-    Color.MAGENTA,
-    Color.GRAY,
-    Color.BLACK
+  public final static Color[] COLORS = {
+      new Color(0xFFFFFF),
+      new Color(0xFB6063),
+      new Color(0xFFC562),
+      new Color(0xFDFF5F),
+      new Color(0x60FE62),
+      new Color(0x64FFFF),
+      new Color(0x6262FF),
+      new Color(0xFFC6CC),
+      new Color(0xFE63FD) ,
+      new Color(0xB3B5B2),
   };
 
-  final static String[] COLOR_NAMES = {
+  public final static Color[] SELECTED_COLORS = {
+      new Color(0xFFC498),
+      new Color(0xDF4444),
+      new Color(0xDFa844),
+      new Color(0xDFDF44),
+      new Color(0x44DF44),
+      new Color(0x44DFDF),
+      new Color(0x4444DF),
+      new Color(0xDFA8A8),
+      new Color(0xDF44DF),
+      new Color(0x949494),
+  };
+
+  public final static String[] COLOR_NAMES = {
       "WHITE",
       "RED",
       "ORANGE",
       "YELLOW",
       "GREEN",
       "CYAN",
+      "PURPLE",
       "PINK",
       "MAGENTA",
-      "GRAY",
-      "BLACK"
+      "GRAY"
   };
 
-  public static Color getColorFromName(String colorName) {
-    for (int i = 0; i < COLOR_NAMES.length; i++) {
-      if (COLOR_NAMES[i].equals(colorName)) {
-        return COLORS[i];
+
+  public static Color getColorFromColorName(String colorName) {
+    for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.COLORS[i];
       }
     }
-    return COLORS[0];
+    return Highlighter.COLORS[0];
+  }
+
+  public static Color getSelectedColorFromColorName(String colorName) {
+    for(int i = 0; i < Highlighter.COLOR_NAMES.length; i++) {
+      if (Highlighter.COLOR_NAMES[i].equals(colorName)) {
+        return Highlighter.SELECTED_COLORS[i];
+      }
+    }
+    return Highlighter.SELECTED_COLORS[0];
   }
 
   public Highlighter(
@@ -59,16 +80,4 @@ public class Highlighter extends Filter {
       String matchCondition) {
     this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
   }
-
-  public Color getColor() { return COLORS[color]; }
-  public int getColorIndex() { return color; }
-
-  public void setColor(int i) {
-    if (i < 0 || i >= COLORS.length)  {
-      color = 0;
-    } else {
-      color = i;
-    }
-  }
-
 }
