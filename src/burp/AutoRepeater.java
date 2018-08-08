@@ -692,7 +692,8 @@ public class AutoRepeater implements IMessageEditorController {
                   modifiedRequestResponse.getHttpService().getPort(),
                   modifiedRequestResponse.getHttpService().getProtocol().equals("https"),
                   modifiedRequestResponse.getRequest(),
-                  modifiedRequestResponse.getResponse());
+                  modifiedRequestResponse.getResponse()
+              );
             }
             if(BurpExtender.getAutoRepeaterMenu().addRequestsToSiteMap) {
               BurpExtender.getCallbacks().printOutput("ADDING TO SITEMAP");
