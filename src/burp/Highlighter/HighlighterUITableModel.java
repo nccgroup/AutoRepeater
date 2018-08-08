@@ -58,7 +58,16 @@ public class HighlighterUITableModel extends AbstractTableModel {
 
   @Override
   public Class getColumnClass(int column) {
-    return (getValueAt(0, column).getClass());
+    switch (column) {
+      case 0:
+        return Boolean.class;
+      case 1:
+        return String.class;
+      case 2:
+        return String.class;
+      default:
+        throw new IllegalStateException("getColumnClass not defined for "+Integer.toString(column));
+    }
   }
 
   @Override
