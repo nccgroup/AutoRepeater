@@ -360,12 +360,19 @@ public class AutoRepeater implements IMessageEditorController {
     c.gridy = 1;
 
     configurationPane.add(configurationTabbedPane, c);
-    configurationTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
-    configurationTabbedPane.addTab("Replacements", replacements.getUI());
-    configurationTabbedPane.addTab("Conditions", conditions.getUI());
-    configurationTabbedPane.addTab("Log Filter", filters.getUI());
-    configurationTabbedPane.addTab("Log Highlighter", highlighters.getUI());
-    configurationTabbedPane.setSelectedIndex(1);
+    JTabbedPane  replacementsTabbedPane = new JTabbedPane();
+    JTabbedPane logsTabbedPane = new JTabbedPane();
+
+    replacementsTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
+    replacementsTabbedPane.addTab("Replacements", replacements.getUI());
+    replacementsTabbedPane.addTab("Conditions", conditions.getUI());
+
+    logsTabbedPane.addTab("Log Filter", filters.getUI());
+    logsTabbedPane.addTab("Log Highlighter", highlighters.getUI());
+
+    configurationTabbedPane.add("Replacements", replacementsTabbedPane);
+    configurationTabbedPane.add("Logs", logsTabbedPane);
+
     // table of log entries
     logTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
       @Override
@@ -678,6 +685,19 @@ public class AutoRepeater implements IMessageEditorController {
           if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
             IHttpRequestResponse modifiedRequestResponse =
                 callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
+            if(BurpExtender.getAutoRepeaterMenu().sendRequestsToPassiveScanner) {
+              BurpExtender.getCallbacks().printOutput("PASSIVE SCANNING");
+              BurpExtender.getCallbacks().doPassiveScan(
+                  modifiedRequestResponse.getHttpService().getHost(),
+                  modifiedRequestResponse.getHttpService().getPort(),
+                  modifiedRequestResponse.getHttpService().getProtocol().equals("https"),
+                  modifiedRequestResponse.getRequest(),
+                  modifiedRequestResponse.getResponse());
+            }
+            if(BurpExtender.getAutoRepeaterMenu().addRequestsToSiteMap) {
+              BurpExtender.getCallbacks().printOutput("ADDING TO SITEMAP");
+              BurpExtender.getCallbacks().addToSiteMap(modifiedRequestResponse);
+            }
             int row = logManager.getRowCount();
             LogEntry newLogEntry = new LogEntry(
                 logManager.getLogTableModel().getLogCount() + 1,

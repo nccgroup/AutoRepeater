@@ -29,6 +29,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   private static JTabbedPane mainTabbedPane;
   private static JTabbedPane parentTabbedPane;
   private static JPanel newTabButton;
+  private static AutoRepeaterMenu autoRepeaterMenu;
   private ExecutorService executor;
   //private static ResponseStore responseStore;
 
@@ -92,8 +93,13 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       callbacks.addSuiteTab(BurpExtender.this);
       // set parent component
       parentTabbedPane = (JTabbedPane) getUiComponent().getParent();
-      SwingUtilities.invokeLater(new AutoRepeaterMenu(parentTabbedPane.getRootPane()));
+      autoRepeaterMenu = new AutoRepeaterMenu(parentTabbedPane.getRootPane());
+      SwingUtilities.invokeLater(autoRepeaterMenu);
     });
+  }
+
+  public static AutoRepeaterMenu getAutoRepeaterMenu() {
+    return autoRepeaterMenu;
   }
 
   public static JTabbedPane getParentTabbedPane() {

@@ -261,7 +261,6 @@ public class Filters {
     c.weighty = 1;
     c.gridx = 1;
     filtersPanel.add(filterScrollPane, c);
-
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
     whitelistFilterRadioButton.addActionListener(e -> {
       setWhitelist(whitelistFilterRadioButton.isSelected());
@@ -271,7 +270,6 @@ public class Filters {
       setWhitelist(!blacklistFilterRadioButton.isSelected());
       logManager.setFilter(this);
     });
-
     filterTableModel.addTableModelListener(e -> logManager.setFilter(this));
   }
 
