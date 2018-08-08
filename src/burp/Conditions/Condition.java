@@ -50,9 +50,11 @@ public class Condition {
   };
 
   public static final String[] MATCH_TYPE_OPTIONS = {
-      "URL",
       "String In Request",
       "String In Response",
+      "Request Length",
+      "Response Length",
+      "URL",
       "Status Code",
       "Domain Name",
       //"IP Address",
@@ -139,6 +141,10 @@ public class Condition {
         return new String[]{"Matches", "Does Not Match"};
       case "String In Response":
         return new String[]{"Matches", "Does Not Match"};
+      case "Request Length":
+        return new String[]{"Is Greater Than", "Is Less Than", "Equals"};
+      case "Response Length":
+        return new String[]{"Is Greater Than", "Is Less Than", "Equals"};
       case "Mime Type":
         return new String[]{"Is Text", "Is Not Text", "Is Media", "Is Not Media"};
       default:
@@ -184,8 +190,44 @@ public class Condition {
         return true;
       case "String In Response":
         return true;
+      case "Request Length":
+        return true;
+      case "Response Length":
+        return true;
       default:
         throw new IllegalStateException("matchConditionIsEditable() not defined for input "+inputString);
+    }
+  }
+
+  private boolean checkRequestLength(IHttpRequestResponse messageInfo) {
+    try {
+      int matchInt = Integer.parseInt(this.matchCondition);
+      switch (this.matchRelationship) {
+        case "Is Greater Than":
+          return messageInfo.getRequest().length > matchInt;
+        case "Is Less Than":
+          return messageInfo.getRequest().length < matchInt;
+        default:
+          return messageInfo.getRequest().length == matchInt;
+      }
+    } catch(Exception NumberFormatException) {
+      return false;
+    }
+  }
+
+  private boolean checkResponseLength(IHttpRequestResponse messageInfo) {
+    try {
+      int matchInt = Integer.parseInt(this.matchCondition);
+      switch (this.matchRelationship) {
+        case "Is Greater Than":
+          return messageInfo.getResponse().length > matchInt;
+        case "Is Less Than":
+          return messageInfo.getResponse().length < matchInt;
+        default:
+          return messageInfo.getResponse().length == matchInt;
+      }
+    } catch(Exception NumberFormatException) {
+      return false;
     }
   }
 
