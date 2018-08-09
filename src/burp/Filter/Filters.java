@@ -227,7 +227,7 @@ public class Filters {
 
     filtersButtonPanel = new JPanel();
     filtersButtonPanel.setLayout(new GridBagLayout());
-    filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
+    filtersButtonPanel.setMinimumSize(AutoRepeater.buttonPanelDimension);
     filtersButtonPanel.setMaximumSize(AutoRepeater.buttonPanelDimension);
     filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
@@ -246,7 +246,11 @@ public class Filters {
     filterTable = new JTable(filterTableModel);
     filterTable.getColumnModel().getColumn(0).setMinWidth(55);
     filterTable.getColumnModel().getColumn(0).setMaxWidth(55);
+
     filterScrollPane = new JScrollPane(filterTable);
+    filterScrollPane.setMinimumSize(AutoRepeater.tableDimension);
+    filterScrollPane.setMaximumSize(AutoRepeater.tableDimension);
+    filterScrollPane.setPreferredSize(AutoRepeater.tableDimension);
 
     // Panel containing filter options
     filtersPanel.setLayout(new GridBagLayout());

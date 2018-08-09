@@ -42,8 +42,9 @@ public class AutoRepeater implements IMessageEditorController {
   public static final Dimension comboBoxDimension = new Dimension(250, 20);
   public static final Dimension textFieldDimension = new Dimension(250, 25);
   public static final Dimension buttonDimension = new Dimension(75, 20);
-  public static final Dimension buttonPanelDimension = new Dimension(75, 60) ;
-  public static final Dimension tableDimension = new Dimension(200, 40);
+  public static final Dimension buttonPanelDimension = new Dimension(75, 90);
+  public static final Dimension tableDimension = new Dimension(200, 200);
+  public static final Dimension configurationPaneDimension = new Dimension(470, 165);
 
   private IBurpExtenderCallbacks callbacks;
   private IExtensionHelpers helpers;
@@ -347,9 +348,7 @@ public class AutoRepeater implements IMessageEditorController {
 
     configurationPane = new JPanel();
     configurationPane.setLayout(new GridBagLayout());
-    Dimension configurationPaneDimension = new Dimension(470, 150);
     configurationPane.setMinimumSize(configurationPaneDimension);
-    //configurationPane.setMaximumSize(configurationPaneDimension);
     configurationPane.setPreferredSize(configurationPaneDimension);
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.NORTHWEST;
@@ -360,7 +359,7 @@ public class AutoRepeater implements IMessageEditorController {
     c.gridy = 1;
 
     configurationPane.add(configurationTabbedPane, c);
-    JTabbedPane  replacementsTabbedPane = new JTabbedPane();
+    JTabbedPane replacementsTabbedPane = new JTabbedPane();
     JTabbedPane logsTabbedPane = new JTabbedPane();
 
     replacementsTabbedPane.addTab("Base Replacements", baseReplacements.getUI());
@@ -686,7 +685,6 @@ public class AutoRepeater implements IMessageEditorController {
             IHttpRequestResponse modifiedRequestResponse =
                 callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
             if(BurpExtender.getAutoRepeaterMenu().sendRequestsToPassiveScanner) {
-              BurpExtender.getCallbacks().printOutput("PASSIVE SCANNING");
               BurpExtender.getCallbacks().doPassiveScan(
                   modifiedRequestResponse.getHttpService().getHost(),
                   modifiedRequestResponse.getHttpService().getPort(),
@@ -696,7 +694,6 @@ public class AutoRepeater implements IMessageEditorController {
               );
             }
             if(BurpExtender.getAutoRepeaterMenu().addRequestsToSiteMap) {
-              BurpExtender.getCallbacks().printOutput("ADDING TO SITEMAP");
               BurpExtender.getCallbacks().addToSiteMap(modifiedRequestResponse);
             }
             int row = logManager.getRowCount();
