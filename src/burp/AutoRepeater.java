@@ -652,10 +652,8 @@ public class AutoRepeater implements IMessageEditorController {
 
   public void modifyAndSendRequestAndLog(
       int toolFlag,
-      boolean messageIsRequest,
       IHttpRequestResponse messageInfo ) {
-    if (!messageIsRequest
-        && activatedButton.isSelected()
+    if (activatedButton.isSelected()
         && toolFlag != BurpExtender.getCallbacks().TOOL_EXTENDER) {
       boolean meetsConditions = conditionsTableModel.check(toolFlag, messageInfo);
       if (meetsConditions) {

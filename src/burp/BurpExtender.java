@@ -227,7 +227,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
       executor.submit(
         () -> autoRepeater.modifyAndSendRequestAndLog(
           toolFlag,
-          messageIsRequest,
           messageInfo)
       );
     }
@@ -405,7 +404,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
             for (AutoRepeater autoRepeater : autoRepeaters) {
               autoRepeater.modifyAndSendRequestAndLog(
                 toolFlag,
-                true,
                 tempRequestResponse);
             }
           });
