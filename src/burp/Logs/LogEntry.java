@@ -52,11 +52,8 @@ public class LogEntry {
     this.selectedBackgroundColor = selectedBackgroundColor;
   }
 
-  //public void setFontColor(Color fontColor) {
-  //  this.fontColor = fontColor;
-  //}
-
   public Color getBackgroundColor() { return this.backgroundColor; }
+
   public Color getFontColor() { return this.backgroundColor; }
 
   public void setRequestResponseId(long requestResponseId) {
@@ -202,13 +199,17 @@ public class LogEntry {
 
     IRequestInfo originalAnalyzedRequest = BurpExtender.getHelpers()
         .analyzeRequest(originalRequestResponse);
+
     IRequestInfo modifiedAnalyzedRequest = BurpExtender.getHelpers()
         .analyzeRequest(modifiedRequestResponse);
 
     IResponseInfo originalAnalyzedResponse = BurpExtender.getHelpers()
         .analyzeResponse(originalRequestResponse.getResponse());
+    this.originalResponseStatus = originalAnalyzedResponse.getStatusCode();
+
     IResponseInfo modifiedAnalyzedResponse = BurpExtender.getHelpers()
-        .analyzeResponse(modifiedRequestResponse.getResponse());
+            .analyzeResponse(modifiedRequestResponse.getResponse());
+    this.modifiedResponseStatus = modifiedAnalyzedResponse.getStatusCode();
 
     // Request ID
     this.requestResponseId = requestResponseId;
@@ -217,14 +218,12 @@ public class LogEntry {
     this.originalRequestResponse = originalRequestResponse;
     this.originalURL = originalAnalyzedRequest.getUrl();
     this.originalMethod = originalAnalyzedRequest.getMethod();
-    this.originalResponseStatus = originalAnalyzedResponse.getStatusCode();
     this.originalLength = originalRequestResponse.getResponse().length;
 
     // Modified Request Info
     this.modifiedRequestResponse = modifiedRequestResponse;
     this.modifiedURL = modifiedAnalyzedRequest.getUrl();
     this.modifiedMethod = modifiedAnalyzedRequest.getMethod();
-    this.modifiedResponseStatus = modifiedAnalyzedResponse.getStatusCode();
     this.modifiedLength = modifiedRequestResponse.getResponse().length;
 
     // Comparisons

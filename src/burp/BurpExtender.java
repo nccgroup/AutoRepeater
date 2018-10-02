@@ -223,12 +223,14 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   @Override
   public void processHttpMessage(
       int toolFlag, boolean messageIsRequest, IHttpRequestResponse messageInfo) {
-    for (AutoRepeater autoRepeater : autoRepeaters) {
-      executor.submit(
-        () -> autoRepeater.modifyAndSendRequestAndLog(
-          toolFlag,
-          messageInfo)
-      );
+    if (!messageIsRequest) {
+      for (AutoRepeater autoRepeater : autoRepeaters) {
+        executor.submit(
+            () -> autoRepeater.modifyAndSendRequestAndLog(
+                toolFlag,
+                messageInfo)
+        );
+      }
     }
   }
 

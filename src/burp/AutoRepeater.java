@@ -694,6 +694,11 @@ public class AutoRepeater implements IMessageEditorController {
             if(BurpExtender.getAutoRepeaterMenu().addRequestsToSiteMap) {
               BurpExtender.getCallbacks().addToSiteMap(modifiedRequestResponse);
             }
+
+            if (modifiedRequestResponse.getResponse() == null) {
+              modifiedRequestResponse.setResponse(new byte[0]);
+            }
+
             int row = logManager.getRowCount();
             LogEntry newLogEntry = new LogEntry(
                 logManager.getLogTableModel().getLogCount() + 1,
@@ -704,6 +709,7 @@ public class AutoRepeater implements IMessageEditorController {
             highlighters.highlight(newLogEntry);
             logManager.addEntry(newLogEntry, filters);
             logManager.fireTableRowsUpdated(row, row);
+            BurpExtender.getCallbacks().printOutput(Integer.toString(logManager.getRowCount()));
           }
         }
       }
