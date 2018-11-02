@@ -121,6 +121,10 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
   }
 
   public static String exportSave(AutoRepeater ar) {
+    return exportSaveAsJson(ar).toString();
+  }
+
+  public static JsonArray exportSaveAsJson(AutoRepeater ar) {
     JsonArray BurpExtenderJson = new JsonArray();
     // Don't count the "..." tab
     for (int i = 0; i < mainTabbedPane.getTabCount() - 1; i++) {
@@ -133,7 +137,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
         BurpExtenderJson.add(AutoRepeaterJson);
       }
     }
-    return BurpExtenderJson.toString();
+    return BurpExtenderJson;
   }
 
   public static void initializeFromSave(String configuration, boolean replaceTabs) {
@@ -155,7 +159,7 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
     }
   }
 
-  private static void addNewTab(JsonObject tabContents) {
+  public static void addNewTab(JsonObject tabContents) {
     String tabName = tabContents.get("tabName").getAsString();
     tabChangeListenerLock = true;
     tabCounter += 1;
@@ -364,7 +368,6 @@ public class BurpExtender implements IBurpExtender, ITab, IHttpListener, IContex
 
   public static AutoRepeater getSelectedAutoRepeater() {
     AutoRepeaterTabHandle autoRepeaterTabHandle = (AutoRepeaterTabHandle) mainTabbedPane.getTabComponentAt(mainTabbedPane.getSelectedIndex());
-
     return autoRepeaterTabHandle.autoRepeater;
   }
 

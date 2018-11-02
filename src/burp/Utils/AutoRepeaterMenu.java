@@ -6,6 +6,8 @@ import burp.IExtensionStateListener;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -184,6 +186,17 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
     }
   }
 
+  class DuplicateCurrentTabListener implements ActionListener {
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      JsonArray serializedTab = BurpExtender.exportSaveAsJson(BurpExtender.getSelectedAutoRepeater());
+      for (JsonElement tabConfiguration : serializedTab) {
+        BurpExtender.addNewTab(tabConfiguration.getAsJsonObject());
+      }
+    }
+  }
+
   @Override
   public void extensionUnloaded() {
     // unregister menu
@@ -198,21 +211,29 @@ public class AutoRepeaterMenu implements Runnable, IExtensionStateListener {
     JMenuBar burpJMenuBar = rootPane.getJMenuBar();
     autoRepeaterJMenu = new JMenu("AutoRepeater");
     // initialize menu items and add action listeners
+    JMenuItem duplicateCurrentTab = new JMenuItem("Duplicate Selected Tab");
+    duplicateCurrentTab.addActionListener(new DuplicateCurrentTabListener());
+
     toggleSettingsVisibility = new JMenuItem("Hide Settings Panel");
     toggleSettingsVisibility.addActionListener(new SettingVisibilityListener());
     JCheckBoxMenuItem toggleSendRequestsToPassiveScanner = new JCheckBoxMenuItem("Send Requests To Passive Scanner");
     toggleSendRequestsToPassiveScanner.addActionListener(l ->
         sendRequestsToPassiveScanner = toggleSendRequestsToPassiveScanner.getState());
+
     JCheckBoxMenuItem toggleAddRequestsToSiteMap = new JCheckBoxMenuItem("Add Requests To Site Map");
     toggleAddRequestsToSiteMap.addActionListener(l ->
         addRequestsToSiteMap = toggleAddRequestsToSiteMap.getState());
+
     JMenuItem showImportMenu = new JMenuItem("Import Settings");
     showImportMenu.addActionListener(new ImportSettingListener());
+
     JMenuItem showExportMenu = new JMenuItem("Export Settings");
     showExportMenu.addActionListener(new ExportSettingListener());
+
     JMenuItem showExportLogsMenu = new JMenuItem("Export Logs");
     showExportLogsMenu.addActionListener(new ExportLogsListener());
     // add menu items to the menu
+    autoRepeaterJMenu.add(duplicateCurrentTab);
     autoRepeaterJMenu.add(toggleSettingsVisibility);
     autoRepeaterJMenu.addSeparator();
     autoRepeaterJMenu.add(toggleAddRequestsToSiteMap);
