@@ -113,7 +113,7 @@ public class Condition {
       case "Request":
         return new String[]{"Contains Parameters", "Does Not Contain Parameters"};
       case "Status Code":
-        return new String[]{"Is Greater Than", "Is Less Than", "Equals"};
+        return new String[]{"Is Greater Than", "Is Less Than", "Equals", "Does Not Equal"};
       case "Cookie Name":
         return new String[]{"Matches", "Does Not Match"};
       case "Cookie Value":
@@ -258,6 +258,8 @@ public class Condition {
           return analyzedResponse.getStatusCode() > responseCodeAsShort;
         case "Is Less Than":
           return analyzedResponse.getStatusCode() < responseCodeAsShort;
+        case "Equals":
+          return (analyzedResponse.getStatusCode() == responseCodeAsShort);
         default:
           return !(analyzedResponse.getStatusCode() == responseCodeAsShort);
       }
