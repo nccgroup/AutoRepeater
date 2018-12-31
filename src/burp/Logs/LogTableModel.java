@@ -38,6 +38,7 @@ public class LogTableModel extends AbstractTableModel {
   public void clearLogs() {
     log.clear();
     filteredLogs.clear();
+    fireTableDataChanged();
   }
 
   public LogEntry getLogEntry(int row) {
@@ -122,7 +123,6 @@ public class LogTableModel extends AbstractTableModel {
   public Object getValueAt(int rowIndex, int columnIndex) {
     //LogEntry logEntry = log.get(rowIndex);
     LogEntry logEntry = filteredLogs.get(rowIndex);
-
     // ID, Mod Method, Mod URL, Orig Status, Mod Status, Orig Size, Mod Size, Size Difference, Response Distance
     switch (columnIndex) {
       case 0:

@@ -16,10 +16,10 @@ public class LogManager {
   private int matchCounter = 0;
 
   public LogManager() {
-    tableRowSorter = new TableRowSorter<>(logTableModel);
     //tableRowSorter.setRowFilter(filter.getRowFilter());
     entriesWithoutResponses = new ArrayList<>();
     logTableModel = new LogTableModel();
+    tableRowSorter = new TableRowSorter<>(logTableModel);
   }
 
   public synchronized int getRowCount() {
@@ -36,6 +36,7 @@ public class LogManager {
 
   public synchronized void addEntry(LogEntry logEntry, Filters filters) {
     logTableModel.addLogEntry(logEntry, filters);
+    logTableModel.fireTableDataChanged();
     //entriesWithoutResponses.add(logEntry);
   }
 
