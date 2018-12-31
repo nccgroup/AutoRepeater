@@ -37,3 +37,34 @@ AutoRepeater provides a general-purpose solution for streamlining authorization 
 + Exporting
 + Toggled activation
 + "Send to AutoRepeater" from other Burp Suite tools
+
+## Sample Usage
+Following are some common use cases for AutoRepeater. Some helpful tips when using the tool are:
+
++ Don't activate autorepeater until you're ready to start browsing.
++ Ensure **Extender** is not using cookies from Burp's cookie jar (**Project Options > Session**).
++ Check early to ensure your replacements are working as expected.
++ Tabs and configuration are preserved after a restart, but data is lost.
+
+### Testing Unauthenticated User Access
+To test whether an unauthenticated user can access the application, configure one rule under Base Replacements to **Remove Header By Name** and then match "Cookie".
+
+### Testing Authenticated User Access
+To test access between authenticated users (e.g. low privilege to higher privilege), you'll need to define replacements for each of the session cookies used.
+
+1. Make note of the cookie names and values for the lower-privileged session.
+2. Configure a rule under Base Replacements for each cookie to **Match Cookie Name, Replace Value**. Match the cookie name, replace with the lower-privileged user's cookie.
+3. Repeat for as many roles as you'd like to test.
+4. Browse the application as the highest-privileged user.
+5. Review the results.
+
+### Reviewing User Access Results
+To review the results of access testing, first ensure you're using the latest version of the tool (Git, not BApp store).
+
+1. Sort by **URL**, then by **Resp. Len. Diff.**. Items with a difference of 0 and identical status codes are strong indicators of successful access.
+2. Using **Logs > Log Filter** configure exclusions for irrelevant data (e.g. File Extension = (png|gif|css|ico), Modified Status Code = (403|404)).
+3. Review the results and manually investigate anything that looks out of place.
+
+## References
+
++ [BSides Rochester 2018 - AutoRepeater: Automated HTTP Request Repeating With Burp Suite](https://www.youtube.com/watch?v=IYFLp_4ccrw)
