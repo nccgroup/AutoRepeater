@@ -9,6 +9,7 @@ import com.google.common.io.Files;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Condition {
@@ -138,9 +139,9 @@ public class Condition {
       case "Listener Port":
         return new String[]{"Matches", "Does Not Match"};
       case "String In Request":
-        return new String[]{"Matches", "Does Not Match"};
+        return new String[]{"Matches", "Does Not Match", "Matches Regex", "Does Not Match Regex"};
       case "String In Response":
-        return new String[]{"Matches", "Does Not Match"};
+        return new String[]{"Matches", "Does Not Match", "Matches Regex", "Does Not Match Regex"};
       case "Request Length":
         return new String[]{"Is Greater Than", "Is Less Than", "Equals"};
       case "Response Length":
@@ -235,8 +236,12 @@ public class Condition {
     switch (this.matchRelationship) {
       case "Matches":
         return new String(messageInfo.getRequest()).contains(this.matchCondition);
-      default:
+      case "Does Not Match":
         return !(new String(messageInfo.getRequest()).contains(this.matchCondition));
+      case "Matches Regex":
+        return Pattern.compile(this.matchCondition).matcher(new String(messageInfo.getRequest())).find();
+      default:
+        return !(Pattern.compile(this.matchCondition).matcher(new String(messageInfo.getRequest())).find());
     }
   }
 
@@ -244,8 +249,12 @@ public class Condition {
     switch (this.matchRelationship) {
       case "Matches":
         return new String(messageInfo.getResponse()).contains(this.matchCondition);
-      default:
+      case "Does Not Match":
         return !(new String(messageInfo.getResponse()).contains(this.matchCondition));
+      case "Matches Regex":
+        return Pattern.compile(this.matchCondition).matcher(new String(messageInfo.getResponse())).find();
+      default:
+        return !(Pattern.compile(this.matchCondition).matcher(new String(messageInfo.getResponse())).find());
     }
   }
 
