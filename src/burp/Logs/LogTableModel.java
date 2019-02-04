@@ -19,6 +19,7 @@ public class LogTableModel extends AbstractTableModel {
     if(filters.filter(logEntry)) {
       filteredLogs.add(logEntry);
     }
+    fireTableDataChanged();
   }
 
   public void filterLogs(Filters filters) {

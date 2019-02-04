@@ -6,6 +6,7 @@ import burp.IHttpRequestResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
 
 public class LogManager {
@@ -35,8 +36,10 @@ public class LogManager {
   }
 
   public synchronized void addEntry(LogEntry logEntry, Filters filters) {
-    logTableModel.addLogEntry(logEntry, filters);
-    logTableModel.fireTableDataChanged();
+    SwingUtilities.invokeLater(() -> {
+      logTableModel.addLogEntry(logEntry, filters);
+      logTableModel.fireTableDataChanged();
+    });
     //entriesWithoutResponses.add(logEntry);
   }
 
