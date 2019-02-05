@@ -68,3 +68,4 @@ To review the results of access testing, first ensure you're using the latest ve
 ## References
 
 + [BSides Rochester 2018 - AutoRepeater: Automated HTTP Request Repeating With Burp Suite](https://www.youtube.com/watch?v=IYFLp_4ccrw)
++ [AutoRepeater: Automated HTTP Request Repeating With Burp Suite](https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/january/autorepeater-automated-http-request-repeating-with-burp-suite/)
