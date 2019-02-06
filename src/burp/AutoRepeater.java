@@ -344,7 +344,7 @@ public class AutoRepeater implements IMessageEditorController {
       }
     });
 
-    Dimension activatedDimension = new Dimension(200, 20);
+    Dimension activatedDimension = new Dimension(200, TEXT_HEIGHT);
     activatedButton.setPreferredSize(activatedDimension);
     activatedButton.setMaximumSize(activatedDimension);
     activatedButton.setMinimumSize(activatedDimension);
