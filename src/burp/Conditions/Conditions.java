@@ -2,6 +2,7 @@ package burp.Conditions;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -207,12 +208,10 @@ public class Conditions {
 
     // Panel containing condition options
     conditionsPanel.setLayout(new GridBagLayout());
-
     c = new GridBagConstraints();
     c.ipady = 0;
     c.anchor = GridBagConstraints.PAGE_START;
     c.gridx = 0;
-
     conditionsPanel.add(conditionsButtonPanel, c);
     c.fill = GridBagConstraints.BOTH;
     c.weightx = 1;

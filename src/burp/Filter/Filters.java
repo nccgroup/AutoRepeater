@@ -4,6 +4,7 @@ import burp.AutoRepeater;
 import burp.BurpExtender;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.ButtonGroup;
@@ -227,14 +228,14 @@ public class Filters {
 
     filtersButtonPanel = new JPanel();
     filtersButtonPanel.setLayout(new GridBagLayout());
-    filtersButtonPanel.setMinimumSize(AutoRepeater.buttonPanelDimension);
-    filtersButtonPanel.setMaximumSize(AutoRepeater.buttonPanelDimension);
-    filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
+    //filtersButtonPanel.setMinimumSize(AutoRepeater.buttonPanelDimension);
+    //filtersButtonPanel.setMaximumSize(AutoRepeater.buttonPanelDimension);
+    //filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.gridx = 0;
-    c.weightx = 0;
+    c.weightx = 1;
 
     filtersButtonPanel.add(addFilterButton, c);
     filtersButtonPanel.add(editFilterButton, c);
@@ -247,10 +248,11 @@ public class Filters {
     filterTable.getColumnModel().getColumn(0).setMinWidth(55);
     filterTable.getColumnModel().getColumn(0).setMaxWidth(55);
 
+    filterTable.setPreferredSize(AutoRepeater.tableDimension);
+    filterTable.setMaximumSize(AutoRepeater.tableDimension);
+    filterTable.setMinimumSize(AutoRepeater.tableDimension);
+
     filterScrollPane = new JScrollPane(filterTable);
-    filterScrollPane.setMinimumSize(AutoRepeater.tableDimension);
-    filterScrollPane.setMaximumSize(AutoRepeater.tableDimension);
-    filterScrollPane.setPreferredSize(AutoRepeater.tableDimension);
 
     // Panel containing filter options
     filtersPanel.setLayout(new GridBagLayout());
@@ -258,7 +260,6 @@ public class Filters {
     c.ipady = 0;
     c.anchor = GridBagConstraints.PAGE_START;
     c.gridx = 0;
-    c.gridy = 1;
     filtersPanel.add(filtersButtonPanel, c);
     c.fill = GridBagConstraints.BOTH;
     c.weightx = 1;
@@ -266,6 +267,7 @@ public class Filters {
     c.gridx = 1;
     filtersPanel.add(filterScrollPane, c);
     // Refilter the logs whenever anything is touched. For whatever reason click the enabled
+
     whitelistFilterRadioButton.addActionListener(e -> {
       setWhitelist(whitelistFilterRadioButton.isSelected());
       logManager.setFilter(this);
