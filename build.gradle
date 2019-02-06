@@ -18,6 +18,8 @@ repositories {
     mavenCentral()
 }
 
+compileJava.options.encoding = 'UTF-8'
+
 dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
     compile 'net.portswigger.burp.extender:burp-extender-api:1.7.13'

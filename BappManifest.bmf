@@ -1,0 +1,12 @@
+Uuid: f89f2837c22c4ab4b772f31522647ed8
+ExtensionType: 1
+Name: Auto Repeater
+RepoName: auto-repeater
+ScreenVersion: 1.0
+SerialVersion: 2
+MinPlatformVersion: 0
+ProOnly: False
+Author: Justin Moore, NCC Group
+ShortDescription: Automatically repeat requests, with replacement rules and response diffing.
+EntryPoint: build/libs/AutoRepeater-all.jar
+BuildCommand: gradle shadowJar
