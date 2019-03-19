@@ -6,7 +6,7 @@ import java.util.LinkedList;
 public class HttpComparer {
 
   public static String diffText(String original, String modified) {
-    if (original.length() > 100000 || modified.length() > 100000) {
+    if (original.length() > 10000 || modified.length() > 10000) {
       return "Input too large, cannot generate diff.";
     } else {
       diff_match_patch differ = new diff_match_patch();
@@ -18,7 +18,7 @@ public class HttpComparer {
   }
 
   public static String diffLines(String original, String modified) {
-    if (original.length() > 300000 || modified.length() > 300000) {
+    if (original.length() > 20000 || modified.length() > 20000) {
       return "Input too large, cannot generate diff.";
     } else {
       diff_match_patch differ = new diff_match_patch();

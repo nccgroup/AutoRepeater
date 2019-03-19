@@ -662,15 +662,15 @@ public class AutoRepeater implements IMessageEditorController {
       if (meetsConditions) {
         // Create a set to store each new unique request in
         HashSet<IHttpRequestResponse> requestSet = new HashSet<>();
-        IHttpRequestResponse baseReplacedRequestResponse = Utils
-            .cloneIHttpRequestResponse(messageInfo);
+        IHttpRequestResponse baseReplacedRequestResponse =
+            Utils.cloneIHttpRequestResponse(messageInfo);
         // Perform all the base replacements on the captured request
         for (Replacement globalReplacement : baseReplacementsTableModel.getReplacements()) {
           baseReplacedRequestResponse.setRequest(
               globalReplacement.performReplacement(baseReplacedRequestResponse));
         }
         //Add the base replaced request to the request set
-        if(replacementsTableModel.getReplacements().size() == 0) {
+        if(replacementsTableModel.getReplacements().isEmpty()) {
           requestSet.add(baseReplacedRequestResponse);
         }
         // Perform all the separate replacements on the request+base replacements and add them to the set
@@ -681,10 +681,14 @@ public class AutoRepeater implements IMessageEditorController {
           requestSet.add(newHttpRequest);
         }
         // Perform every unique request and log
+        int count = 0;
         for (IHttpRequestResponse request : requestSet) {
           if (!Arrays.equals(request.getRequest(), messageInfo.getRequest())) {
+            count += 1;
+            BurpExtender.getCallbacks().printOutput("Sending Request " + count + " of " + requestSet.size());
             IHttpRequestResponse modifiedRequestResponse =
                 callbacks.makeHttpRequest(messageInfo.getHttpService(), request.getRequest());
+            BurpExtender.getCallbacks().printOutput("TEST9");
             if(BurpExtender.getAutoRepeaterMenu().sendRequestsToPassiveScanner) {
               BurpExtender.getCallbacks().doPassiveScan(
                   modifiedRequestResponse.getHttpService().getHost(),
@@ -694,25 +698,33 @@ public class AutoRepeater implements IMessageEditorController {
                   modifiedRequestResponse.getResponse()
               );
             }
+            BurpExtender.getCallbacks().printOutput("TEST8");
             if(BurpExtender.getAutoRepeaterMenu().addRequestsToSiteMap) {
               BurpExtender.getCallbacks().addToSiteMap(modifiedRequestResponse);
             }
-
+            BurpExtender.getCallbacks().printOutput("TEST7");
             if (modifiedRequestResponse.getResponse() == null) {
               modifiedRequestResponse.setResponse(new byte[0]);
             }
 
-            int row = logManager.getRowCount();
+            BurpExtender.getCallbacks().printOutput("TEST6");
             LogEntry newLogEntry = new LogEntry(
                 logManager.getLogTableModel().getLogCount() + 1,
                 toolFlag,
                 callbacks.saveBuffersToTempFiles(messageInfo),
                 callbacks.saveBuffersToTempFiles(modifiedRequestResponse));
-            // Highlight the rows
+            BurpExtender.getCallbacks().printOutput("TEST5");
             highlighters.highlight(newLogEntry);
+            BurpExtender.getCallbacks().printOutput("TEST4");
+            int row = logManager.getRowCount();
+            BurpExtender.getCallbacks().printOutput("TEST3");
             logManager.addEntry(newLogEntry, filters);
-            logManager.fireTableRowsUpdated(row, row);
-            BurpExtender.getCallbacks().printOutput(Integer.toString(logManager.getRowCount()));
+            // Highlight the rows
+            BurpExtender.getCallbacks().printOutput("TEST2");
+            //logManager.fireTableRowsUpdated(row, row);
+            logManager.getLogTableModel().fireTableDataChanged();
+            BurpExtender.getCallbacks().printOutput("TEST1");
+            //BurpExtender.getCallbacks().printOutput(Integer.toString(logManager.getRowCount()));
           }
         }
       }
@@ -913,27 +925,49 @@ public class AutoRepeater implements IMessageEditorController {
         currentOriginalRequestResponse = logEntry.getOriginalRequestResponse();
         currentModifiedRequestResponse = logEntry.getModifiedRequestResponse();
 
-        new Thread(() -> {
+        SwingUtilities.invokeLater(() -> {
           requestDiff = HttpComparer
               .diffText(new String(originalRequest), new String(modifiedRequest));
           updateRequestViewers();
-        }).start();
-        new Thread(() -> {
+        });
+        SwingUtilities.invokeLater(() -> {
           responseDiff = HttpComparer
               .diffText(new String(originalResponse), new String(modifiedResponse));
           updateRequestViewers();
-        }).start();
-        new Thread(() -> {
+        });
+        SwingUtilities.invokeLater(() -> {
           requestLineDiff = HttpComparer
               .diffLines(new String(originalRequest), new String(modifiedRequest));
           updateRequestViewers();
-        }).start();
-        new Thread(() -> {
+
+        });
+        SwingUtilities.invokeLater(() -> {
           responseLineDiff = HttpComparer
               .diffLines(new String(originalResponse), new String(modifiedResponse));
           updateRequestViewers();
-        }).start();
-        updateRequestViewers();
+        });
+
+        //new Thread(() -> {
+        //  requestDiff = HttpComparer
+        //      .diffText(new String(originalRequest), new String(modifiedRequest));
+        //  updateRequestViewers();
+        //}).start();
+        //new Thread(() -> {
+        //  responseDiff = HttpComparer
+        //      .diffText(new String(originalResponse), new String(modifiedResponse));
+        //  updateRequestViewers();
+        //}).start();
+        //new Thread(() -> {
+        //  requestLineDiff = HttpComparer
+        //      .diffLines(new String(originalRequest), new String(modifiedRequest));
+        //  updateRequestViewers();
+        //}).start();
+        //new Thread(() -> {
+        //  responseLineDiff = HttpComparer
+        //      .diffLines(new String(originalResponse), new String(modifiedResponse));
+        //  updateRequestViewers();
+        //}).start();
+        //updateRequestViewers();
         // Hack to speed up the ui
       }).start();
     }

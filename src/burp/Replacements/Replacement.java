@@ -94,13 +94,13 @@ public class Replacement {
         .filter(p -> p.getType() == parameterType)
         .collect(Collectors.toList());
 
-    for (IParameter param : originalParameters) {
-      BurpExtender.getCallbacks().printOutput(param.getName());
-    }
-    BurpExtender.getCallbacks().printOutput("-----");
-    for (IParameter param : parameters) {
-      BurpExtender.getCallbacks().printOutput(param.getName());
-    }
+    //for (IParameter param : originalParameters) {
+    //  BurpExtender.getCallbacks().printOutput(param.getName());
+    //}
+    //BurpExtender.getCallbacks().printOutput("-----");
+    //for (IParameter param : parameters) {
+    //  BurpExtender.getCallbacks().printOutput(param.getName());
+    //}
 
     boolean wasChanged = false;
     for (ListIterator<IParameter> iterator = parameters.listIterator(); iterator.hasNext(); ) {
