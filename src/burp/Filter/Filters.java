@@ -186,6 +186,7 @@ public class Filters {
         Filter tempFilter = filterTableModel.get(selectedRow);
 
         booleanOperatorComboBox.setSelectedItem(tempFilter.getBooleanOperator());
+        originalOrModifiedComboBox.setSelectedItem(tempFilter.getOriginalOrModified());
         matchTypeComboBox.setSelectedItem(tempFilter.getMatchType());
         matchRelationshipComboBox.setSelectedItem(tempFilter.getMatchRelationship());
         matchFilterTextField.setText(tempFilter.getMatchCondition());

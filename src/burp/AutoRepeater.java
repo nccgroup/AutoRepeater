@@ -41,13 +41,13 @@ public class AutoRepeater implements IMessageEditorController {
   public static final int TEXT_HEIGHT = new JTextField().getPreferredSize().height;
   public static final int BUTTON_HEIGHT = new JButton().getPreferredSize().height;
 
-  public static final Dimension dialogDimension = new Dimension(450, 140);
+  public static final Dimension dialogDimension = new Dimension(450, TEXT_HEIGHT*9);
   public static final Dimension comboBoxDimension = new Dimension(250, TEXT_HEIGHT);
   public static final Dimension textFieldDimension = new Dimension(250, TEXT_HEIGHT);
   public static final Dimension buttonDimension = new Dimension(75, TEXT_HEIGHT);
-  public static final Dimension buttonPanelDimension = new Dimension(75, TEXT_HEIGHT*7);
-  public static final Dimension tableDimension = new Dimension(200, 300);
-  public static final Dimension configurationPaneDimension = new Dimension(470, 200);
+  public static final Dimension buttonPanelDimension = new Dimension(75, TEXT_HEIGHT*9);
+  public static final Dimension tableDimension = new Dimension(200, TEXT_HEIGHT*9);
+  public static final Dimension configurationPaneDimension = new Dimension(470, TEXT_HEIGHT*9);
 
   private IBurpExtenderCallbacks callbacks;
   private IExtensionHelpers helpers;
