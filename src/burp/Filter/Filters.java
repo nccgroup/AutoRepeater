@@ -2,6 +2,7 @@ package burp.Filter;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
+import burp.Conditions.Condition;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
 import java.awt.Color;
@@ -33,6 +34,7 @@ public class Filters {
   private JPanel filtersButtonPanel;
   private JButton editFilterButton;
   private JButton deleteFilterButton;
+  private JButton duplicateFilterButton;
 
   // Filters Popup UI
   private JComboBox<String> booleanOperatorComboBox;
@@ -233,6 +235,20 @@ public class Filters {
     //filtersButtonPanel.setMaximumSize(AutoRepeater.buttonPanelDimension);
     //filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
+    duplicateFilterButton = new JButton("Duplicate");
+    duplicateFilterButton.setPreferredSize(AutoRepeater.buttonDimension);
+    duplicateFilterButton.setMinimumSize(AutoRepeater.buttonDimension);
+    duplicateFilterButton.setMaximumSize(AutoRepeater.buttonDimension);
+
+    duplicateFilterButton.addActionListener(e -> {
+      int selectedRow = filterTable.getSelectedRow();
+      if (selectedRow != -1 && selectedRow < filterTableModel.getConditions().size()) {
+        Condition condition = filterTableModel.getConditions().get(selectedRow);
+        filterTableModel.add(condition);
+        filterTableModel.fireTableDataChanged();
+      }
+    });
+
     c = new GridBagConstraints();
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.gridx = 0;
@@ -241,6 +257,7 @@ public class Filters {
     filtersButtonPanel.add(addFilterButton, c);
     filtersButtonPanel.add(editFilterButton, c);
     filtersButtonPanel.add(deleteFilterButton, c);
+    filtersButtonPanel.add(duplicateFilterButton, c);
     filtersButtonPanel.add(whitelistFilterRadioButton, c);
     filtersButtonPanel.add(blacklistFilterRadioButton, c);
 

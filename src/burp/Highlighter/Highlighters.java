@@ -85,6 +85,7 @@ public class Highlighters {
     JButton addHighlighterButton = new JButton("Add");
     JButton editHighlighterButton = new JButton("Edit");
     JButton deleteHighlighterButton = new JButton("Remove");
+    JButton duplicateHighlighterButton = new JButton("Duplicate");
     JPanel buttonsPanel = new JPanel();
     JTable menuTable = new JTable(highlighterUITableModel);
 
@@ -119,12 +120,18 @@ public class Highlighters {
     addHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
     deleteHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
+    duplicateHighlighterButton.setPreferredSize(AutoRepeater.buttonDimension);
+
     addHighlighterButton.setMinimumSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setMinimumSize(AutoRepeater.buttonDimension);
     deleteHighlighterButton.setMinimumSize(AutoRepeater.buttonDimension);
+    duplicateHighlighterButton.setMinimumSize(AutoRepeater.buttonDimension);
+
     addHighlighterButton.setMaximumSize(AutoRepeater.buttonDimension);
     editHighlighterButton.setMaximumSize(AutoRepeater.buttonDimension);
     deleteHighlighterButton.setMaximumSize(AutoRepeater.buttonDimension);
+    duplicateHighlighterButton.setMaximumSize(AutoRepeater.buttonDimension);
+
     buttonsPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
     buttonsPanel.setLayout(new GridBagLayout());
@@ -135,6 +142,7 @@ public class Highlighters {
     buttonsPanel.add(addHighlighterButton, c);
     buttonsPanel.add(editHighlighterButton, c);
     buttonsPanel.add(deleteHighlighterButton, c);
+    buttonsPanel.add(duplicateHighlighterButton, c);
 
     JScrollPane menuScrollPane = new JScrollPane(menuTable);
 
@@ -195,6 +203,14 @@ public class Highlighters {
       if (menuTable.getSelectedRow() != -1) {
         highlighterUITableModel.remove(menuTable.getSelectedRow());
         highlight();
+        highlighterUITableModel.fireTableDataChanged();
+      }
+    });
+    duplicateHighlighterButton.addActionListener(l -> {
+      int selectedRow = menuTable.getSelectedRow();
+      if (selectedRow != -1 && selectedRow < highlighterUITableModel.getRowCount()) {
+        HighlighterTableModel tm = highlighterUITableModel.get(selectedRow);
+        highlighterUITableModel.add(tm);
         highlighterUITableModel.fireTableDataChanged();
       }
     });
