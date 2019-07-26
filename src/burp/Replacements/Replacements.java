@@ -24,6 +24,7 @@ public class Replacements {
   private JPanel replacementsButtonPanel;
   private JButton editReplacementButton;
   private JButton deleteReplacementButton;
+  private JButton duplicateReplacementButton;
 
   // Replacements popup UI
   private JPanel replacementPanel;
@@ -193,6 +194,21 @@ public class Replacements {
       }
     });
 
+    duplicateReplacementButton = new JButton("Duplicate");
+    duplicateReplacementButton.setPreferredSize(AutoRepeater.buttonDimension);
+    duplicateReplacementButton.setMinimumSize(AutoRepeater.buttonDimension);
+    duplicateReplacementButton.setMaximumSize(AutoRepeater.buttonDimension);
+
+    // Duplicate a replacement
+    duplicateReplacementButton.addActionListener(e -> {
+      int selectedRow = replacementTable.getSelectedRow();
+      if (selectedRow != -1 && selectedRow < replacementTableModel.getReplacements().size()) {
+        Replacement r = replacementTableModel.getReplacement(selectedRow);
+        replacementTableModel.addReplacement(r);
+        replacementTableModel.fireTableDataChanged();
+      }
+    });
+
     replacementsButtonPanel = new JPanel();
     replacementsButtonPanel.setLayout(new GridBagLayout());
     replacementsButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
@@ -205,6 +221,7 @@ public class Replacements {
     replacementsButtonPanel.add(addReplacementButton, c);
     replacementsButtonPanel.add(editReplacementButton, c);
     replacementsButtonPanel.add(deleteReplacementButton, c);
+    replacementsButtonPanel.add(duplicateReplacementButton, c);
 
     replacementTableModel = new ReplacementTableModel();
     replacementTable = new JTable(replacementTableModel);
