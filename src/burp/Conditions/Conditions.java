@@ -21,10 +21,11 @@ public class Conditions {
   private JPanel conditionPanel;
   private JScrollPane conditionScrollPane;
   private JTable conditionTable;
-  private JButton addConditionButton;
   private JPanel conditionsButtonPanel;
+  private JButton addConditionButton;
   private JButton editConditionButton;
   private JButton deleteConditionButton;
+  private JButton duplicateConditionButton;
 
   // Conditions Popup UI
   private JComboBox<String> booleanOperatorComboBox;
@@ -185,6 +186,22 @@ public class Conditions {
       }
     });
 
+
+    // Duplicate Condition
+    duplicateConditionButton = new JButton("Duplicate");
+    duplicateConditionButton.setPreferredSize(AutoRepeater.buttonDimension);
+    duplicateConditionButton.setMinimumSize(AutoRepeater.buttonDimension);
+    duplicateConditionButton.setMaximumSize(AutoRepeater.buttonDimension);
+
+    duplicateConditionButton.addActionListener(e -> {
+      int selectedRow = conditionTable.getSelectedRow();
+      if (conditionTable.getSelectedRow() != -1
+          && selectedRow < getConditionTableModel().getConditions().size()) {
+        conditionTableModel.add(new Condition(getConditionTableModel().get(selectedRow)));
+        conditionTableModel.fireTableDataChanged();
+      }
+    });
+
     conditionsButtonPanel = new JPanel();
     conditionsButtonPanel.setLayout(new GridBagLayout());
     conditionsButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
@@ -199,6 +216,7 @@ public class Conditions {
     conditionsButtonPanel.add(addConditionButton, c);
     conditionsButtonPanel.add(editConditionButton, c);
     conditionsButtonPanel.add(deleteConditionButton, c);
+    conditionsButtonPanel.add(duplicateConditionButton, c);
 
     conditionTableModel = new ConditionTableModel();
     conditionTable = new JTable(conditionTableModel);

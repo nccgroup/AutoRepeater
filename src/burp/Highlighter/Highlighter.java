@@ -80,4 +80,16 @@ public class Highlighter extends Filter {
       String matchCondition) {
     this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
   }
+
+  public Highlighter(Highlighter highlighter) {
+    this(highlighter.getBooleanOperator(),
+        highlighter.getOriginalOrModified(),
+        highlighter.getMatchType(),
+        highlighter.getMatchRelationship(),
+        highlighter.getMatchCondition(),
+        highlighter.isEnabled());
+    if (this.getBooleanOperator().equals("")) {
+      setBooleanOperator("And");
+    }
+  }
 }

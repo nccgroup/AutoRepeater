@@ -2,10 +2,8 @@ package burp.Filter;
 
 import burp.AutoRepeater;
 import burp.BurpExtender;
-import burp.Conditions.Condition;
 import burp.Logs.LogEntry;
 import burp.Logs.LogManager;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.ButtonGroup;
@@ -231,9 +229,6 @@ public class Filters {
 
     filtersButtonPanel = new JPanel();
     filtersButtonPanel.setLayout(new GridBagLayout());
-    //filtersButtonPanel.setMinimumSize(AutoRepeater.buttonPanelDimension);
-    //filtersButtonPanel.setMaximumSize(AutoRepeater.buttonPanelDimension);
-    //filtersButtonPanel.setPreferredSize(AutoRepeater.buttonPanelDimension);
 
     duplicateFilterButton = new JButton("Duplicate");
     duplicateFilterButton.setPreferredSize(AutoRepeater.buttonDimension);
@@ -243,8 +238,7 @@ public class Filters {
     duplicateFilterButton.addActionListener(e -> {
       int selectedRow = filterTable.getSelectedRow();
       if (selectedRow != -1 && selectedRow < filterTableModel.getConditions().size()) {
-        Condition condition = filterTableModel.getConditions().get(selectedRow);
-        filterTableModel.add(condition);
+        filterTableModel.add(new Filter(filterTableModel.getFilters().get(selectedRow)));
         filterTableModel.fireTableDataChanged();
       }
     });

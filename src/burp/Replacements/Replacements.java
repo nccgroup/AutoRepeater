@@ -203,8 +203,8 @@ public class Replacements {
     duplicateReplacementButton.addActionListener(e -> {
       int selectedRow = replacementTable.getSelectedRow();
       if (selectedRow != -1 && selectedRow < replacementTableModel.getReplacements().size()) {
-        Replacement r = replacementTableModel.getReplacement(selectedRow);
-        replacementTableModel.addReplacement(r);
+        replacementTableModel.addReplacement(
+            new Replacement(replacementTableModel.getReplacement(selectedRow)));
         replacementTableModel.fireTableDataChanged();
       }
     });

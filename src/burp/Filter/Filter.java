@@ -17,6 +17,7 @@ public class Filter extends Condition {
     super(booleanOperator, matchType, matchRelationship, matchCondition, isEnabled);
     setOriginalOrModified(originalOrModified);
   }
+
   public Filter(
       String booleanOperator,
       String originalOrModified,
@@ -24,6 +25,18 @@ public class Filter extends Condition {
       String matchRelationship,
       String matchCondition) {
     this(booleanOperator, originalOrModified, matchType, matchRelationship, matchCondition, true);
+  }
+
+  public Filter(Filter filter) {
+    this(filter.getBooleanOperator(),
+        filter.getOriginalOrModified(),
+        filter.getMatchType(),
+        filter.getMatchRelationship(),
+        filter.getMatchCondition(),
+        filter.isEnabled());
+    if(getBooleanOperator().equals("")) {
+      setBooleanOperator("And");
+    }
   }
 
   public boolean checkCondition(LogEntry logEntry) {

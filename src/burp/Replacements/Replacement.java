@@ -61,6 +61,7 @@ public class Replacement {
   private String replace;
   private String comment;
   private String which;
+
   private Boolean isRegexMatch;
   private Boolean isEnabled;
 
@@ -78,6 +79,28 @@ public class Replacement {
     this.comment = comment;
     this.isRegexMatch = isRegexMatch;
     this.isEnabled = true;
+  }
+
+  public Replacement(
+      String type,
+      String match,
+      String replace,
+      String which,
+      String comment,
+      boolean isRegexMatch,
+      boolean isEnabled) {
+    this(type, match, replace, which, comment, isRegexMatch);
+    this.setEnabled(isEnabled);
+  }
+
+  public Replacement(Replacement replacement) {
+    this(replacement.getType(),
+     replacement.getMatch(),
+     replacement.getReplace(),
+     replacement.getWhich(),
+     replacement.getComment(),
+     replacement.isRegexMatch(),
+     replacement.isEnabled());
   }
 
   private byte[] updateBurpParam(
@@ -576,5 +599,14 @@ public class Replacement {
   public void setWhich(String which) {
     this.which = which;
   }
+
+  public Boolean getRegexMatch() {
+    return isRegexMatch;
+  }
+
+  public Boolean getEnabled() {
+    return isEnabled;
+  }
+
 
 }

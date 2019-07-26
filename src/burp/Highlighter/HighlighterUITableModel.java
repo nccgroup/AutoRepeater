@@ -1,6 +1,7 @@
 package burp.Highlighter;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 
 public class HighlighterUITableModel extends AbstractTableModel {
@@ -10,6 +11,11 @@ public class HighlighterUITableModel extends AbstractTableModel {
 
   public HighlighterUITableModel() {
     tableModels = new ArrayList<>();
+  }
+
+  public HighlighterUITableModel(HighlighterUITableModel highlighterUITableModel) {
+    this();
+    tableModels.addAll(highlighterUITableModel.getTableModels());
   }
 
   public ArrayList<HighlighterTableModel> getTableModels() { return tableModels; }
