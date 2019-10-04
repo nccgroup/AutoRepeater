@@ -18,7 +18,7 @@ public class FilterTableModel extends ConditionTableModel {
 
   public boolean check(LogEntry logEntry) {
     boolean meetsFilters = false;
-    if (getFilters().size() == 0) {
+    if (getFilters().isEmpty()) {
       meetsFilters = true;
     } else {
       if (getFilters()

@@ -67,14 +67,14 @@ public class Highlighters {
   public void highlight(LogEntry logEntry) {
     logEntry.setBackgroundColor(Highlighter.COLORS[0], Highlighter.SELECTED_COLORS[0]);
     for (HighlighterTableModel highlighterTableModel : highlighterUITableModel.getTableModels()) {
-      if (highlighterTableModel.isEnabled()) {
-        for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
-          if (highlighter.isEnabled() && highlighter.checkCondition(logEntry)) {
-            logEntry.setBackgroundColor(
-                highlighterTableModel.getColor(), highlighterTableModel.getSelectedColor());
-          }
+      //if (highlighterTableModel.isEnabled()) {
+        //for (Highlighter highlighter : highlighterTableModel.getHighlighters()) {
+        if (highlighterTableModel.check(logEntry)) {
+          logEntry.setBackgroundColor(
+              highlighterTableModel.getColor(), highlighterTableModel.getSelectedColor());
         }
-      }
+        //}
+      //}
     }
     logTable.repaint();
   }
