@@ -331,7 +331,7 @@ public class Condition {
 
   private boolean checkFileExtension(IHttpRequestResponse messageInfo) {
     IRequestInfo analyzedRequest = BurpExtender.getHelpers().analyzeRequest(messageInfo);
-    String fileExtension = Files.getFileExtension(analyzedRequest.getUrl().toString());
+    String fileExtension = Files.getFileExtension(analyzedRequest.getUrl().getPath().toString());
     switch (this.matchRelationship) {
       case "Matches":
         return fileExtension.matches(this.matchCondition);
