@@ -231,7 +231,7 @@ public class Replacement {
       byte[] updatedBody = Utils.byteArrayRegexReplaceFirst(body, this.match, this.replace);
       return helpers.buildHttpMessage(headers, updatedBody);
     } else {
-      byte[] updatedBody = Utils.byteArrayRegexReplaceFirst(body, this.match, this.replace);
+      byte[] updatedBody = Utils.byteArrayRegexReplaceAll(body, this.match, this.replace);
       return helpers.buildHttpMessage(headers, updatedBody);
     }
   }
