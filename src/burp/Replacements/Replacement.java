@@ -223,10 +223,16 @@ public class Replacement {
 
   // This is a hack around binary content causing requests to send
   private byte[] updateContent(byte[] request) {
+    IExtensionHelpers helpers = BurpExtender.getHelpers();
+    IRequestInfo analyzedRequest = helpers.analyzeRequest(request);
+    List<String> headers = analyzedRequest.getHeaders();
+    byte[] body = Arrays.copyOfRange(request, analyzedRequest.getBodyOffset(), request.length);
     if (replaceFirst()) {
-      return Utils.byteArrayRegexReplaceFirst(request, this.match, this.replace);
+      byte[] updatedBody = Utils.byteArrayRegexReplaceFirst(body, this.match, this.replace);
+      return helpers.buildHttpMessage(headers, updatedBody);
     } else {
-      return Utils.byteArrayRegexReplaceAll(request, this.match, this.replace);
+      byte[] updatedBody = Utils.byteArrayRegexReplaceFirst(body, this.match, this.replace);
+      return helpers.buildHttpMessage(headers, updatedBody);
     }
   }
 
