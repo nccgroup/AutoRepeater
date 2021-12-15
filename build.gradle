@@ -21,9 +21,9 @@ repositories {
 compileJava.options.encoding = 'UTF-8'
 
 dependencies {
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
-    compile 'net.portswigger.burp.extender:burp-extender-api:1.7.13'
-    compile 'com.google.guava:guava:23.4-jre'
+    implementation 'com.google.code.gson:gson:2.7'
+    implementation 'net.portswigger.burp.extender:burp-extender-api:1.7.13'
+    implementation 'com.google.guava:guava:23.4-jre'
 }
 
 //noinspection GroovyAssignabilityCheck
@@ -44,4 +44,10 @@ jar {
                 "Manifest-Version": "1.0",
         )
     }
+}
+
+task fatJar(type: Jar) {
+	archiveBaseName = project.name + '-all'
+	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
 }
